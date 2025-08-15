@@ -1,15 +1,14 @@
-// Esperar a que todo el HTML se haya cargado antes de asignar funciones
+// Esperamos a que todo el HTML esté cargado
 document.addEventListener("DOMContentLoaded", () => {
-  // Buscar el botón por su ID o su clase
-  const boton = document.querySelector("button[onclick='startApp()']");
-  
-  // Si el botón existe, le asignamos el evento manualmente
+  // Buscamos el botón por su ID
+  const boton = document.getElementById("entrar-btn");
+
+  // Si encontramos el botón, le añadimos el evento
   if (boton) {
     boton.addEventListener("click", () => {
+      console.log("Botón clicado"); // Para pruebas
       document.getElementById("intro").classList.add("hidden");
       document.getElementById("mainApp").classList.remove("hidden");
     });
   }
 });
-
-console.log("Botón clicado");
