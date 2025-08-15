@@ -19,15 +19,6 @@
     }
     .skew-bottom {position:relative;}
     .skew-bottom::after{content:"";position:absolute;bottom:-1px;left:0;width:100%;height:80px;background:var(--color-light);transform:skewY(3deg);transform-origin:0;}
-    .nav-central button {
-      @apply text-2xl px-6 py-3 font-bold rounded-lg shadow bg-blue-600 text-white hover:bg-blue-700;
-    }
-    .nav-top {
-      @apply bg-gray-200;
-    }
-    .nav-top button {
-      @apply text-sm px-4 py-1 rounded font-semibold;
-    }
   </style>
 </head>
 <body class="min-h-screen bg-gray-100">
@@ -56,38 +47,36 @@
       </div>
     </header>
 
-    <!-- Navegación grande -->
-    <nav id="nav-central" class="flex flex-col items-center justify-center gap-4 py-10 nav-central">
-      <button onclick="showSection('5a')">5ºA</button>
-      <button onclick="showSection('5b')">5ºB</button>
-      <button onclick="showSection('6a')">6ºA</button>
-      <button onclick="showSection('6b')">6ºB</button>
-      <button onclick="showSection('objetivos')">Objetivos</button>
-      <button onclick="showSection('recompensas')">Recompensas</button>
-      <button onclick="showSection('entrevistas')">Entrevistas</button>
-    </nav>
+    <!-- Pantalla de Selección -->
+    <section id="selector" class="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 p-6 place-items-center">
+      <button class="w-full h-24 text-white font-bold rounded-lg bg-blue-600 hover:bg-blue-700" onclick="showSection('5a')">Clase 5A</button>
+      <button class="w-full h-24 text-white font-bold rounded-lg bg-blue-600 hover:bg-blue-700" onclick="showSection('5b')">Clase 5B</button>
+      <button class="w-full h-24 text-white font-bold rounded-lg bg-blue-600 hover:bg-blue-700" onclick="showSection('6a')">Clase 6A</button>
+      <button class="w-full h-24 text-white font-bold rounded-lg bg-blue-600 hover:bg-blue-700" onclick="showSection('6b')">Clase 6B</button>
+      <button class="w-full h-24 text-white font-bold rounded-lg bg-gray-800 hover:bg-gray-900" onclick="showSection('objetivos')">Objetivos</button>
+      <button class="w-full h-24 text-white font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700" onclick="showSection('recompensas')">Recompensas</button>
+      <button class="w-full h-24 text-white font-bold rounded-lg bg-orange-600 hover:bg-orange-700" onclick="showSection('entrevistas')">Entrevistas</button>
+    </section>
 
-    <!-- Navegación Tabs superior -->
-    <nav id="nav-top" class="hidden nav-top">
+    <!-- Navegación superior clásica -->
+    <nav id="nav-top" class="hidden bg-gray-200">
       <div class="max-w-6xl mx-auto flex flex-wrap justify-center gap-2 py-2">
-        <button class="tab-btn btn-primary" onclick="showSection('5a')">5ºA</button>
-        <button class="tab-btn btn-primary" onclick="showSection('5b')">5ºB</button>
-        <button class="tab-btn btn-primary" onclick="showSection('6a')">6ºA</button>
-        <button class="tab-btn btn-primary" onclick="showSection('6b')">6ºB</button>
-        <button class="tab-btn bg-gray-800 text-white" onclick="showSection('objetivos')">Objetivos</button>
-        <button class="tab-btn bg-gray-800 text-white" onclick="showSection('recompensas')">Recompensas</button>
-        <button class="tab-btn bg-gray-800 text-white" onclick="showSection('entrevistas')">Entrevistas</button>
+        <button class="tab-btn btn-primary px-4 py-1 rounded" onclick="showSection('5a')">5ºA</button>
+        <button class="tab-btn btn-primary px-4 py-1 rounded" onclick="showSection('5b')">5ºB</button>
+        <button class="tab-btn btn-primary px-4 py-1 rounded" onclick="showSection('6a')">6ºA</button>
+        <button class="tab-btn btn-primary px-4 py-1 rounded" onclick="showSection('6b')">6ºB</button>
+        <button class="tab-btn bg-gray-800 text-white px-4 py-1 rounded" onclick="showSection('objetivos')">Objetivos</button>
+        <button class="tab-btn bg-gray-800 text-white px-4 py-1 rounded" onclick="showSection('recompensas')">Recompensas</button>
+        <button class="tab-btn bg-orange-600 text-white px-4 py-1 rounded" onclick="showSection('entrevistas')">Entrevistas</button>
       </div>
     </nav>
 
     <!-- Contenido -->
     <main class="flex-1 max-w-6xl mx-auto w-full p-4">
-      <!-- Secciones de clase -->
       <section id="5a" class="hidden"></section>
       <section id="5b" class="hidden"></section>
       <section id="6a" class="hidden"></section>
       <section id="6b" class="hidden"></section>
-      <!-- Secciones adicionales -->
       <section id="objetivos" class="hidden">
         <h3 class="text-2xl font-semibold mb-4">Objetivos y Puntuaciones</h3>
         <p>Aquí listaremos los objetivos y los puntos que otorgan.</p>
@@ -104,23 +93,23 @@
   </div>
 
   <script>
-    function startApp() {
+    function startApp(){
       document.getElementById('intro').classList.add('hidden');
       document.getElementById('mainApp').classList.remove('hidden');
-      document.getElementById('nav-central').classList.remove('hidden');
+      document.getElementById('selector').classList.remove('hidden');
       document.getElementById('nav-top').classList.add('hidden');
     }
 
-    function showSection(sec) {
-      document.getElementById('nav-central').classList.add('hidden');
+    function showSection(sec){
+      document.querySelectorAll('main > section').forEach(s=>s.classList.add('hidden'));
+      document.getElementById('selector').classList.add('hidden');
       document.getElementById('nav-top').classList.remove('hidden');
-      document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
       document.getElementById(sec).classList.remove('hidden');
     }
 
-    function goHome() {
-      document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
-      document.getElementById('nav-central').classList.remove('hidden');
+    function goHome(){
+      document.querySelectorAll('main > section').forEach(s=>s.classList.add('hidden'));
+      document.getElementById('selector').classList.remove('hidden');
       document.getElementById('nav-top').classList.add('hidden');
     }
   </script>
