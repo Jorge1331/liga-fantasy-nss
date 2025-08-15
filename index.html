@@ -19,6 +19,15 @@
     }
     .skew-bottom {position:relative;}
     .skew-bottom::after{content:"";position:absolute;bottom:-1px;left:0;width:100%;height:80px;background:var(--color-light);transform:skewY(3deg);transform-origin:0;}
+    .nav-central button {
+      @apply text-2xl px-6 py-3 font-bold rounded-lg shadow bg-blue-600 text-white hover:bg-blue-700;
+    }
+    .nav-top {
+      @apply bg-gray-200;
+    }
+    .nav-top button {
+      @apply text-sm px-4 py-1 rounded font-semibold;
+    }
   </style>
 </head>
 <body class="min-h-screen bg-gray-100">
@@ -43,19 +52,31 @@
           <img src="images/logo.png" alt="Logo" class="h-10"/>
           <h2 class="text-2xl font-bold text-gray-900">LIGA FANTASY NSS 25/26</h2>
         </div>
+        <button onclick="goHome()" class="btn-primary px-4 py-1 rounded">Inicio</button>
       </div>
     </header>
 
-    <!-- Navegación Tabs -->
-    <nav class="bg-gray-200">
+    <!-- Navegación grande -->
+    <nav id="nav-central" class="flex flex-col items-center justify-center gap-4 py-10 nav-central">
+      <button onclick="showSection('5a')">5ºA</button>
+      <button onclick="showSection('5b')">5ºB</button>
+      <button onclick="showSection('6a')">6ºA</button>
+      <button onclick="showSection('6b')">6ºB</button>
+      <button onclick="showSection('objetivos')">Objetivos</button>
+      <button onclick="showSection('recompensas')">Recompensas</button>
+      <button onclick="showSection('entrevistas')">Entrevistas</button>
+    </nav>
+
+    <!-- Navegación Tabs superior -->
+    <nav id="nav-top" class="hidden nav-top">
       <div class="max-w-6xl mx-auto flex flex-wrap justify-center gap-2 py-2">
-        <button class="tab-btn btn-primary px-4 py-1 rounded" onclick="showSection('5a')">5ºA</button>
-        <button class="tab-btn btn-primary px-4 py-1 rounded" onclick="showSection('5b')">5ºB</button>
-        <button class="tab-btn btn-primary px-4 py-1 rounded" onclick="showSection('6a')">6ºA</button>
-        <button class="tab-btn btn-primary px-4 py-1 rounded" onclick="showSection('6b')">6ºB</button>
-        <button class="tab-btn bg-gray-800 text-white px-4 py-1 rounded" onclick="showSection('objetivos')">Objetivos</button>
-        <button class="tab-btn bg-gray-800 text-white px-4 py-1 rounded" onclick="showSection('recompensas')">Recompensas</button>
-        <button class="tab-btn bg-gray-800 text-white px-4 py-1 rounded" onclick="showSection('entrevistas')">Entrevistas</button>
+        <button class="tab-btn btn-primary" onclick="showSection('5a')">5ºA</button>
+        <button class="tab-btn btn-primary" onclick="showSection('5b')">5ºB</button>
+        <button class="tab-btn btn-primary" onclick="showSection('6a')">6ºA</button>
+        <button class="tab-btn btn-primary" onclick="showSection('6b')">6ºB</button>
+        <button class="tab-btn bg-gray-800 text-white" onclick="showSection('objetivos')">Objetivos</button>
+        <button class="tab-btn bg-gray-800 text-white" onclick="showSection('recompensas')">Recompensas</button>
+        <button class="tab-btn bg-gray-800 text-white" onclick="showSection('entrevistas')">Entrevistas</button>
       </div>
     </nav>
 
@@ -73,7 +94,7 @@
       </section>
       <section id="recompensas" class="hidden">
         <h3 class="text-2xl font-semibold mb-4">Recompensas</h3>
-        <p>Catá de premios que los alumnos pueden conseguir con sus puntos.</p>
+        <p>Catálogo de premios que los alumnos pueden conseguir con sus puntos.</p>
       </section>
       <section id="entrevistas" class="hidden">
         <h3 class="text-2xl font-semibold mb-4">Galería y Entrevistas</h3>
@@ -82,85 +103,25 @@
     </main>
   </div>
 
-  <!-- Plantilla de tabla -->
-  <template id="table-template">
-    <h3 class="text-2xl font-semibold mb-3"></h3>
-    <div class="overflow-x-auto bg-white shadow rounded-lg">
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-          <tr>
-            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
-            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Alumno</th>
-            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Puntos</th>
-            <th class="px-4 py-2"></th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-200"></tbody>
-      </table>
-    </div>
-  </template>
-
   <script>
-    const defaultData = {
-      '5a': generateClass('5ºA'),
-      '5b': generateClass('5ºB'),
-      '6a': generateClass('6ºA'),
-      '6b': generateClass('6ºB'),
-    };
-
-    function generateClass(label){
-      const names = [
-        'Álvaro','Lucía','Martín','Sofía','Leo','Daniela','Mateo','Emma','Hugo','Valeria',
-        'Lucas','Carla','Pablo','Julia','Enzo','Martina','Alejandro','Paula','Manuel','Sara',
-        'Adrián','Noa','David','Chloe','Mario'
-      ]
-      return names.map((n,i)=>({name:`${n} ${label}`.replace('º','°'),points:Math.floor(Math.random()*51)}));
-    }
-
-    const stored = JSON.parse(localStorage.getItem('fantasyData')||'null');
-    let data = stored||defaultData;
-
-    function save(){localStorage.setItem('fantasyData',JSON.stringify(data));}
-
-    function buildTable(sectionId){
-      const section = document.getElementById(sectionId);
-      section.innerHTML='';
-      const tpl = document.getElementById('table-template');
-      const clone = tpl.content.cloneNode(true);
-      clone.querySelector('h3').textContent = `Clase ${sectionId.toUpperCase()}`;
-      const tbody = clone.querySelector('tbody');
-      data[sectionId].sort((a,b)=>b.points-a.points);
-      data[sectionId].forEach((alum,idx)=>{
-        const tr=document.createElement('tr');
-        tr.innerHTML=`
-          <td class="px-4 py-2 text-sm text-gray-700">${idx+1}</td>
-          <td class="px-4 py-2 text-sm font-medium text-gray-900">${alum.name}</td>
-          <td class="px-4 py-2 text-sm text-gray-700">${alum.points}</td>
-          <td class="px-4 py-2 space-x-1">
-            <button class="btn-primary text-xs px-2 py-1 rounded" onclick="changePoints('${sectionId}',${idx},1)">+1</button>
-            <button class="bg-red-600 text-white text-xs px-2 py-1 rounded" onclick="changePoints('${sectionId}',${idx},-1)">-1</button>
-          </td>`;
-        tbody.appendChild(tr);
-      });
-      section.appendChild(clone);
-    }
-
-    function changePoints(classId,index,delta){
-      data[classId][index].points = Math.max(0,data[classId][index].points+delta);
-      save();
-      buildTable(classId);
-    }
-
-    function startApp(){
+    function startApp() {
       document.getElementById('intro').classList.add('hidden');
       document.getElementById('mainApp').classList.remove('hidden');
+      document.getElementById('nav-central').classList.remove('hidden');
+      document.getElementById('nav-top').classList.add('hidden');
     }
 
-    function showSection(sec){
-      document.querySelectorAll('main > section').forEach(s=>s.classList.add('hidden'));
-      const current = document.getElementById(sec);
-      current.classList.remove('hidden');
-      if(['5a','5b','6a','6b'].includes(sec)) buildTable(sec);
+    function showSection(sec) {
+      document.getElementById('nav-central').classList.add('hidden');
+      document.getElementById('nav-top').classList.remove('hidden');
+      document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
+      document.getElementById(sec).classList.remove('hidden');
+    }
+
+    function goHome() {
+      document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
+      document.getElementById('nav-central').classList.remove('hidden');
+      document.getElementById('nav-top').classList.add('hidden');
     }
   </script>
 </body>
