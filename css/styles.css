@@ -1,11 +1,38 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Botones personalizados */
+:root {
+  --color-primary: #1D4ED8;
+  --color-dark: #000000;
+  --color-light: #ffffff;
+}
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+}
+
 .btn-primary {
   @apply bg-blue-600 text-white font-semibold rounded px-4 py-2 hover:bg-blue-700;
 }
-.btn-secondary {
-  @apply bg-emerald-500 text-white font-semibold rounded px-4 py-2 hover:bg-emerald-600;
+
+.hero-bg {
+  background: linear-gradient(135deg, var(--color-primary) 0%, #0f1b3d 100%);
+}
+
+.skew-bottom {
+  position: relative;
+}
+
+.skew-bottom::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 80px;
+  background: var(--color-light);
+  transform: skewY(3deg);
+  transform-origin: 0;
 }
