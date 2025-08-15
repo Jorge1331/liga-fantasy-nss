@@ -1,14 +1,15 @@
-// Esperamos a que todo el HTML esté cargado
+
+// Esperar a que cargue el DOM
 document.addEventListener("DOMContentLoaded", () => {
-  // Buscamos el botón por su ID
   const boton = document.getElementById("entrar-btn");
 
-  // Si encontramos el botón, le añadimos el evento
   if (boton) {
     boton.addEventListener("click", () => {
-      console.log("Botón clicado"); // Para pruebas
+      // Oculta la sección de introducción
       document.getElementById("intro").classList.add("hidden");
+      // Muestra la sección principal
       document.getElementById("mainApp").classList.remove("hidden");
+      console.log("Entrando a la Liga...");
     });
   }
 });
