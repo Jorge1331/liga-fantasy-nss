@@ -11,3 +11,5 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
+console.log("Botón clicado");
