@@ -72,8 +72,9 @@
     </nav>
 
     <!-- Contenido -->
+   ... <!-- Contenido -->
     <main class="flex-1 max-w-6xl mx-auto w-full p-4">
-      <section id="5a" class="hidden">
+      <section id="5ºA" class="hidden">
   <h3 class="text-2xl font-semibold mb-4">📋 Clasificación 5ºA</h3>
   <div class="overflow-x-auto bg-white shadow rounded-lg">
     <table class="min-w-full border-collapse table-auto">
@@ -89,17 +90,14 @@
         </tr>
       </thead>
       <tbody>
-        " + "
-".join(
-          f"<tr><td class='border p-2 text-center font-semibold'>{i}</td>" + 
-          "<td class='border p-2'></td>" * 6 + "</tr>" for i in range(1, 28)
-        ) + "
+        <!-- 27 filas -->
+        " + "".join(f"<tr><td class='border p-2 text-center font-semibold'>{i}</td>" + "<td class='border p-2'></td>" * 6 + "</tr>" for i in range(1, 28)) + "
       </tbody>
     </table>
   </div>
 </section>
 
-<section id="5b" class="hidden">
+<section id="5ºB" class="hidden">
   <h3 class="text-2xl font-semibold mb-4">📋 Clasificación 5ºB</h3>
   <div class="overflow-x-auto bg-white shadow rounded-lg">
     <table class="min-w-full border-collapse table-auto">
@@ -115,17 +113,13 @@
         </tr>
       </thead>
       <tbody>
-        " + "
-".join(
-          f"<tr><td class='border p-2 text-center font-semibold'>{i}</td>" + 
-          "<td class='border p-2'></td>" * 6 + "</tr>" for i in range(1, 28)
-        ) + "
+        " + "".join(f"<tr><td class='border p-2 text-center font-semibold'>{i}</td>" + "<td class='border p-2'></td>" * 6 + "</tr>" for i in range(1, 28)) + "
       </tbody>
     </table>
   </div>
 </section>
 
-<section id="6a" class="hidden">
+<section id="6ºA" class="hidden">
   <h3 class="text-2xl font-semibold mb-4">📋 Clasificación 6ºA</h3>
   <div class="overflow-x-auto bg-white shadow rounded-lg">
     <table class="min-w-full border-collapse table-auto">
@@ -141,17 +135,13 @@
         </tr>
       </thead>
       <tbody>
-        " + "
-".join(
-          f"<tr><td class='border p-2 text-center font-semibold'>{i}</td>" + 
-          "<td class='border p-2'></td>" * 6 + "</tr>" for i in range(1, 28)
-        ) + "
+        " + "".join(f"<tr><td class='border p-2 text-center font-semibold'>{i}</td>" + "<td class='border p-2'></td>" * 6 + "</tr>" for i in range(1, 28)) + "
       </tbody>
     </table>
   </div>
 </section>
 
-<section id="6b" class="hidden">
+<section id="6ºB" class="hidden">
   <h3 class="text-2xl font-semibold mb-4">📋 Clasificación 6ºB</h3>
   <div class="overflow-x-auto bg-white shadow rounded-lg">
     <table class="min-w-full border-collapse table-auto">
@@ -167,11 +157,7 @@
         </tr>
       </thead>
       <tbody>
-        " + "
-".join(
-          f"<tr><td class='border p-2 text-center font-semibold'>{i}</td>" + 
-          "<td class='border p-2'></td>" * 6 + "</tr>" for i in range(1, 28)
-        ) + "
+        " + "".join(f"<tr><td class='border p-2 text-center font-semibold'>{i}</td>" + "<td class='border p-2'></td>" * 6 + "</tr>" for i in range(1, 28)) + "
       </tbody>
     </table>
   </div>
@@ -195,7 +181,7 @@
           <li>🚫 <strong>Incidencia grave:</strong> -3 puntos</li>
         </ul>
       </section>
-     <section id="recompensas" class="hidden">
+    <section id="recompensas" class="hidden">
         <h3 class="text-2xl font-semibold mb-4"> Recompensas – Liga Fantasy NSS</h3>
         <p class="mb-6">Estas recompensas están diseñadas para premiar el esfuerzo, la constancia y el comportamiento positivo en el aula. Se otorgan según el puesto que ocupen en el ranking de la liga.</p>
         <div class="overflow-x-auto">
