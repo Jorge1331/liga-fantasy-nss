@@ -1463,9 +1463,438 @@
   </script>
 </section>
           <section id="entrevistas" class="hidden">
-        <h3 class="text-2xl font-semibold mb-4">Galería y Entrevistas</h3>
-        <p>Fotos y entrevistas destacadas aparecerán aquí.</p>
-      </section>
+  <style>
+    /* Estilos locales SOLO para #entrevistas */
+    #entrevistas .e-hero{
+      background: radial-gradient(1200px 200px at -10% -40%, rgba(99,102,241,.15), transparent 60%),
+                  radial-gradient(900px 150px at 110% -30%, rgba(16,185,129,.18), transparent 60%),
+                  linear-gradient(180deg,#ffffff 0%,#f8fafc 100%);
+    }
+    #entrevistas .e-chip{ font-size:.70rem }
+    #entrevistas .e-card{
+      background: linear-gradient(180deg,#ffffff 0%,#f9fafb 100%);
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    #entrevistas .e-card:hover{ transform: translateY(-2px); box-shadow: 0 10px 20px rgba(2,6,23,.08); }
+    #entrevistas .e-reveal{ opacity:0; transform: translateY(10px); transition: all .45s cubic-bezier(.22,.8,.3,1); }
+    #entrevistas .e-show{ opacity:1; transform: translateY(0); }
+
+    /* Modal */
+    #entrevistas .e-modal{ display:none; position: fixed; inset:0; background: rgba(15,23,42,.55); z-index: 50; }
+    #entrevistas .e-modal.open{ display:flex; align-items:center; justify-content:center; }
+    #entrevistas .e-modal-card{ width: min(750px, 92vw); max-height: 90vh; overflow:auto; }
+    #entrevistas .e-input{ border:1px solid #e5e7eb; border-radius:.75rem; padding:.6rem .8rem; width:100%; }
+    #entrevistas .e-label{ font-size:.85rem; color:#334155; margin-bottom:.25rem; display:block; }
+
+    /* Lightbox simple */
+    #entrevistas .e-lightbox{ display:none; position:fixed; inset:0; background: rgba(0,0,0,.85); z-index:60; }
+    #entrevistas .e-lightbox.open{ display:flex; align-items:center; justify-content:center; }
+    #entrevistas .e-lightbox img{ max-width:90vw; max-height:85vh; border-radius:1rem; }
+
+    /* Badges por clase */
+    #entrevistas .badge-5a{ background:#e0e7ff; color:#3730a3; }
+    #entrevistas .badge-5b{ background:#d1fae5; color:#065f46; }
+    #entrevistas .badge-6a{ background:#fae8ff; color:#86198f; }
+    #entrevistas .badge-6b{ background:#e0f2fe; color:#075985; }
+
+    /* MVP suggestion pill */
+    #entrevistas .mvp-pill{ border:1px solid #e5e7eb; background:#ffffff; }
+    #entrevistas .mvp-pill strong{ color:#0f172a; }
+  </style>
+
+  <!-- Cabecera -->
+  <div class="e-hero rounded-2xl p-6 md:p-8 mb-6 relative overflow-hidden">
+    <div class="absolute -top-8 -right-10 w-44 h-44 rounded-full bg-white/30 blur-2xl"></div>
+    <h3 class="text-3xl md:text-4xl font-extrabold text-gray-900 e-reveal">Galería y Entrevistas</h3>
+    <p class="text-gray-600 mt-1 e-reveal">Recoge momentos, actividades y frases destacadas de tus estudiantes.</p>
+
+    <!-- Controles -->
+    <div class="mt-4 flex flex-col md:flex-row gap-2 e-reveal">
+      <div class="flex gap-2 items-center">
+        <input id="e-search" type="search" placeholder="Buscar por nombre o actividad…" class="e-input">
+        <select id="e-filter-class" class="e-input">
+          <option value="all">Todas las clases</option>
+          <option value="5A">5ºA</option>
+          <option value="5B">5ºB</option>
+          <option value="6A">6ºA</option>
+          <option value="6B">6ºB</option>
+        </select>
+      </div>
+      <div class="flex gap-2 md:ml-auto">
+        <button id="e-btn-add" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow">➕ Nueva entrada</button>
+        <button id="e-btn-clear" class="px-4 py-2 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-800">🧹 Limpiar (demo)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MVP detectados (importación rápida) -->
+  <div id="e-mvp-bar" class="hidden mb-4 rounded-2xl border p-4 bg-white">
+    <div class="flex items-center justify-between gap-2 flex-wrap">
+      <div class="flex items-center gap-2">
+        <span class="text-sm font-semibold text-gray-700">MVP detectados:</span>
+        <div id="e-mvp-pills" class="flex flex-wrap gap-2"></div>
+      </div>
+      <div class="flex gap-2">
+        <button id="e-btn-import-all" class="px-3 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">Importar todos</button>
+        <button id="e-btn-refresh-mvps" class="px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200">Actualizar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grid -->
+  <div id="e-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+
+  <!-- Estado vacío -->
+  <div id="e-empty" class="hidden rounded-2xl border border-dashed border-gray-300 p-10 text-center text-gray-500">
+    Sin entradas todavía. Pulsa <strong>“Nueva entrada”</strong> o <strong>“Importar todos”</strong> para traer los MVP 👇
+  </div>
+
+  <!-- Modal: Crear entrada -->
+  <div id="e-modal" class="e-modal">
+    <div class="e-modal-card bg-white rounded-2xl shadow-xl p-5">
+      <div class="flex items-center justify-between mb-3">
+        <h4 class="text-xl font-bold">Nueva entrada</h4>
+        <button id="e-modal-close" class="px-3 py-1 rounded-lg bg-gray-100 hover:bg-gray-200">✖</button>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-4">
+        <div>
+          <label class="e-label">Nombre del alumno/a</label>
+          <input id="e-form-name" class="e-input" placeholder="Ej.: Sofía R." maxlength="60">
+        </div>
+        <div>
+          <label class="e-label">Clase</label>
+          <select id="e-form-class" class="e-input">
+            <option value="5A">5ºA</option>
+            <option value="5B">5ºB</option>
+            <option value="6A">6ºA</option>
+            <option value="6B">6ºB</option>
+          </select>
+        </div>
+        <div class="md:col-span-2">
+          <label class="e-label">Actividad / Título breve</label>
+          <input id="e-form-title" class="e-input" placeholder="Ej.: Experimento de ciencias">
+        </div>
+        <div class="md:col-span-2">
+          <label class="e-label">Entrevista / Cita destacada</label>
+          <textarea id="e-form-quote" rows="4" class="e-input" placeholder="Ej.: “Lo más difícil fue… pero lo conseguimos”"></textarea>
+        </div>
+
+        <div>
+          <label class="e-label">Foto (archivo)</label>
+          <input id="e-form-file" type="file" accept="image/*" class="e-input" />
+          <p class="text-xs text-gray-500 mt-1">Puedes usar la cámara del móvil.</p>
+        </div>
+        <div>
+          <label class="e-label">…o URL de imagen</label>
+          <input id="e-form-url" class="e-input" placeholder="https://…">
+          <p class="text-xs text-gray-500 mt-1">Si pegas una URL, tendrá prioridad sobre el archivo.</p>
+        </div>
+      </div>
+
+      <div class="mt-4 flex items-center justify-between">
+        <p class="text-xs text-gray-500">Las entradas se guardan en este dispositivo (localStorage).</p>
+        <div class="flex gap-2">
+          <button id="e-modal-save" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lightbox -->
+  <div id="e-lightbox" class="e-lightbox">
+    <div class="absolute top-4 right-4 flex gap-2">
+      <button id="e-lightbox-delete" class="px-3 py-1 rounded-lg bg-red-600 text-white">Eliminar</button>
+      <button id="e-lightbox-close" class="px-3 py-1 rounded-lg bg-gray-200">Cerrar</button>
+    </div>
+    <img id="e-lightbox-img" alt="Foto" />
+  </div>
+
+  <script>
+    (function(){
+      const sec = document.getElementById('entrevistas');
+      const KEY = 'fantasy_media_v1';
+      const MVP_KEYS = {
+        '5A': 'fantasy_5a_mvp_v1',
+        '5B': 'fantasy_5b_mvp_v1',
+        '6A': 'fantasy_6a_mvp_v1',
+        '6B': 'fantasy_6b_mvp_v1',
+      };
+
+      // Imagen por defecto para MVP
+      const DEFAULT_MVP_IMG = 'https://images.unsplash.com/photo-1530224264768-7ff8c1789d79?q=80&w=1200&auto=format&fit=crop';
+
+      const $ = (sel)=> sec.querySelector(sel);
+      const grid = $('#e-grid');
+      const empty = $('#e-empty');
+
+      let entries = [];
+
+      function load(){
+        try{ const raw = localStorage.getItem(KEY); if(raw) return JSON.parse(raw); }catch(e){}
+        // Demo inicial (solo si no hay datos guardados)
+        return [
+          {
+            id: crypto.randomUUID(), name:'Sergio', clazz:'5A',
+            title:'Gymkana de mates', quote:'“¡Hicimos equipo y nos salió perfecto!”',
+            img:'https://images.unsplash.com/photo-1606326608606-aa0b62935f22?q=80&w=1200&auto=format&fit=crop',
+            ts: Date.now()-86400000*2
+          },
+          {
+            id: crypto.randomUUID(), name:'Lucía', clazz:'5B',
+            title:'Taller de lectura', quote:'“Leímos en voz alta y me encantó hacer de narradora.”',
+            img:'https://images.unsplash.com/photo-1544642899-f836b6f1df2b?q=80&w=1200&auto=format&fit=crop',
+            ts: Date.now()-86400000*1.3
+          },
+          {
+            id: crypto.randomUUID(), name:'Iker', clazz:'6A',
+            title:'Volcán de química', quote:'“La erupción fue épica y aprendimos un montón.”',
+            img:'https://images.unsplash.com/photo-1532094349884-543bc11b234d?q=80&w=1200&auto=format&fit=crop',
+            ts: Date.now()-3600000*8
+          }
+        ];
+      }
+      function save(){ localStorage.setItem(KEY, JSON.stringify(entries)); }
+
+      function classBadge(c){
+        const map = { '5A':'badge-5a', '5B':'badge-5b', '6A':'badge-6a', '6B':'badge-6b' };
+        return `<span class="e-chip px-2 py-1 rounded-full ${map[c]||'badge-5a'}">${c}</span>`;
+      }
+
+      function formatDate(ts){
+        const d = new Date(ts);
+        return d.toLocaleDateString('es-ES', { day:'2-digit', month:'short', year:'numeric' });
+      }
+
+      function cardHTML(item){
+        return `
+          <article class="e-card rounded-2xl shadow p-3 e-reveal" data-id="${item.id}">
+            <div class="relative rounded-xl overflow-hidden aspect-[4/3] bg-gray-100">
+              <img src="${item.img}" alt="${item.title||'Actividad'}" class="w-full h-full object-cover">
+              <div class="absolute top-2 left-2 flex gap-2">${classBadge(item.clazz)}</div>
+              <button class="absolute bottom-2 right-2 px-3 py-1 rounded-lg bg-white/90 text-gray-800 text-sm e-btn-zoom">Ampliar</button>
+            </div>
+            <div class="mt-3">
+              <h5 class="font-semibold text-gray-900">${item.title||'Actividad'}</h5>
+              <p class="text-sm text-gray-500">${item.name} · <span>${formatDate(item.ts)}</span></p>
+              ${item.quote ? `<p class="mt-2 text-gray-700">“${item.quote}”</p>`:''}
+              <div class="mt-3 flex gap-2">
+                <button class="px-3 py-1 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm e-btn-delete">Eliminar</button>
+              </div>
+            </div>
+          </article>
+        `;
+      }
+
+      function render(){
+        const q = $('#e-search').value.trim().toLowerCase();
+        const f = $('#e-filter-class').value;
+
+        const filtered = entries
+          .filter(it => f==='all' ? true : it.clazz===f)
+          .filter(it => {
+            const blob = (it.name+' '+(it.title||'')+' '+(it.quote||'')).toLowerCase();
+            return blob.includes(q);
+          })
+          .sort((a,b)=> b.ts - a.ts);
+
+        grid.innerHTML = filtered.map(cardHTML).join('');
+        empty.classList.toggle('hidden', filtered.length>0);
+
+        // animación de aparición
+        requestAnimationFrame(()=> {
+          grid.querySelectorAll('.e-reveal').forEach((el,i)=> setTimeout(()=> el.classList.add('e-show'), 60*i));
+        });
+      }
+
+      // --- MVP import: lectura de MVPs guardados por clase ---
+      function readMVPs(){
+        const out = [];
+        for(const [clazz, key] of Object.entries(MVP_KEYS)){
+          try{
+            const raw = localStorage.getItem(key);
+            if(!raw) continue;
+            const obj = JSON.parse(raw); // {name, points}
+            if(obj && obj.name) out.push({ clazz, name: obj.name, points: obj.points||0 });
+          }catch(e){}
+        }
+        return out;
+      }
+
+      function makeMvpPill(mvp){
+        const id = `pill-${mvp.clazz}`;
+        return `
+          <div class="mvp-pill px-3 py-1 rounded-xl flex items-center gap-2" id="${id}">
+            <span class="e-chip px-2 py-1 rounded-full ${{
+              '5A':'badge-5a','5B':'badge-5b','6A':'badge-6a','6B':'badge-6b'
+            }[mvp.clazz]}">${mvp.clazz}</span>
+            <strong>${mvp.name}</strong>
+            <span class="text-xs text-gray-500">${mvp.points} pts</span>
+            <button class="px-2 py-1 rounded bg-emerald-600 text-white text-xs e-btn-import-one" data-clazz="${mvp.clazz}">Añadir</button>
+          </div>
+        `;
+      }
+
+      function refreshMvpBar(){
+        const mvps = readMVPs();
+        const bar = $('#e-mvp-bar');
+        const pills = $('#e-mvp-pills');
+        if(mvps.length){
+          bar.classList.remove('hidden');
+          pills.innerHTML = mvps.map(makeMvpPill).join('');
+        }else{
+          bar.classList.add('hidden');
+          pills.innerHTML = '';
+        }
+      }
+
+      function addMvpToGallery(mvp){
+        const item = {
+          id: crypto.randomUUID(),
+          name: mvp.name,
+          clazz: mvp.clazz,
+          title: 'MVP de la semana',
+          quote: `Reconocido/a como MVP con ${mvp.points} puntos.`,
+          img: DEFAULT_MVP_IMG,
+          ts: Date.now()
+        };
+        entries.push(item);
+        save();
+        render();
+      }
+
+      // Modal helpers
+      const modal = $('#e-modal');
+      const lb = $('#e-lightbox');
+      const lbImg = $('#e-lightbox-img');
+      let lbId = null;
+
+      function openModal(){ modal.classList.add('open'); }
+      function closeModal(){ modal.classList.remove('open'); clearForm(); }
+      function clearForm(){
+        $('#e-form-name').value='';
+        $('#e-form-class').value='5A';
+        $('#e-form-title').value='';
+        $('#e-form-quote').value='';
+        $('#e-form-file').value='';
+        $('#e-form-url').value='';
+      }
+
+      // Guardar nueva entrada
+      async function getImageData(){
+        const url = $('#e-form-url').value.trim();
+        if(url) return url;
+        const file = $('#e-form-file').files[0];
+        if(!file) return '';
+        return new Promise((res,rej)=>{
+          const fr = new FileReader();
+          fr.onload = ()=> res(fr.result);
+          fr.onerror = rej;
+          fr.readAsDataURL(file);
+        });
+      }
+
+      $('#e-btn-add').addEventListener('click', openModal);
+      $('#e-modal-close').addEventListener('click', closeModal);
+
+      $('#e-modal-save').addEventListener('click', async ()=>{
+        const name = $('#e-form-name').value.trim();
+        const clazz = $('#e-form-class').value;
+        const title = $('#e-form-title').value.trim();
+        const quote = $('#e-form-quote').value.trim();
+        const img = await getImageData();
+
+        if(!name || !clazz || !img){
+          alert('Nombre, clase y foto/URL son obligatorios.');
+          return;
+        }
+
+        entries.push({ id: crypto.randomUUID(), name, clazz, title, quote, img, ts: Date.now() });
+        save();
+        closeModal();
+        render();
+      });
+
+      // Grid interactions (delegación)
+      grid.addEventListener('click', (e)=>{
+        const card = e.target.closest('article.e-card');
+        if(!card) return;
+        const id = card.getAttribute('data-id');
+        if(e.target.classList.contains('e-btn-delete')){
+          if(confirm('¿Eliminar esta entrada de la galería?')){
+            entries = entries.filter(it => it.id!==id);
+            save(); render();
+          }
+          return;
+        }
+        if(e.target.classList.contains('e-btn-zoom')){
+          const it = entries.find(x => x.id===id);
+          if(!it) return;
+          lbImg.src = it.img; lb.classList.add('open'); lbId = id;
+        }
+      });
+
+      $('#e-lightbox-close').addEventListener('click', ()=> lb.classList.remove('open'));
+      $('#e-lightbox').addEventListener('click', (e)=> { if(e.target===lb) lb.classList.remove('open'); });
+
+      $('#e-lightbox-delete').addEventListener('click', ()=>{
+        if(!lbId) return;
+        if(confirm('¿Eliminar esta entrada?')){
+          entries = entries.filter(it => it.id!==lbId);
+          save(); lb.classList.remove('open'); render();
+        }
+      });
+
+      // Filtros / búsqueda
+      $('#e-search').addEventListener('input', render);
+      $('#e-filter-class').addEventListener('change', render);
+
+      // Limpiar (demo): restaura estado vacío
+      $('#e-btn-clear').addEventListener('click', ()=>{
+        if(confirm('Esto borrará las entradas de la galería en este dispositivo.')){
+          entries = []; save(); render();
+        }
+      });
+
+      // MVP import events
+      $('#e-btn-refresh-mvps').addEventListener('click', refreshMvpBar);
+      $('#e-btn-import-all').addEventListener('click', ()=>{
+        const mvps = readMVPs();
+        if(!mvps.length){ alert('No hay MVP guardados en las clases.'); return; }
+        mvps.forEach(addMvpToGallery);
+      });
+      // delegación para "Añadir" individual
+      $('#e-mvp-pills').addEventListener('click', (e)=>{
+        const btn = e.target.closest('.e-btn-import-one');
+        if(!btn) return;
+        const clazz = btn.getAttribute('data-clazz');
+        const key = MVP_KEYS[clazz];
+        try{
+          const raw = localStorage.getItem(key);
+          if(!raw){ alert('No se encontró MVP para '+clazz); return; }
+          const mvp = JSON.parse(raw);
+          addMvpToGallery({ clazz, name: mvp.name, points: mvp.points||0 });
+        }catch(err){
+          alert('No se pudo importar el MVP de '+clazz);
+        }
+      });
+
+      // Render SOLO cuando la sección esté visible
+      function revealHeader(){
+        const headEls = sec.querySelectorAll('.e-hero .e-reveal');
+        headEls.forEach((el,i)=> setTimeout(()=> el.classList.add('e-show'), 90*i));
+      }
+      const obs = new MutationObserver(()=>{
+        if(!sec.classList.contains('hidden')) { revealHeader(); render(); refreshMvpBar(); }
+      });
+      obs.observe(sec, { attributes:true });
+
+      // Init
+      entries = load();
+      if(!sec.classList.contains('hidden')) { revealHeader(); render(); refreshMvpBar(); }
+    })();
+  </script>
+</section>
     </main>
   </div>
 
