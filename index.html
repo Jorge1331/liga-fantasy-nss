@@ -687,9 +687,620 @@
     })();
   </script>
 </section>
-      <section id="6a" class="hidden"></section>
-      <section id="6b" class="hidden"></section>
+      <section id="6a" class="hidden">
+  <!-- 6ºA: Panel de clase (aislado) -->
+  <div class="flex flex-col gap-4">
+    <!-- Encabezado + Acciones -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+      <div>
+        <h3 class="text-3xl font-extrabold tracking-tight">Clase 6ºA</h3>
+        <p class="text-sm text-gray-600">Temporada 25/26 · Gestión local (solo en este dispositivo)</p>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <button id="c6a-btn-mvp" class="px-4 py-2 rounded-lg bg-violet-600 text-white hover:bg-violet-700 shadow">🎲 Sorteo MVP</button>
+        <button id="c6a-btn-reset" class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 shadow">🧹 Reset puntos</button>
+        <button id="c6a-btn-edit" class="px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-black shadow">✏️ Editar lista</button>
+      </div>
+    </div>
 
+    <!-- Tarjetas de métricas -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div class="bg-white shadow rounded-xl p-4">
+        <p class="text-xs text-gray-500">Alumnos</p>
+        <p id="c6a-metric-count" class="text-2xl font-bold">—</p>
+      </div>
+      <div class="bg-white shadow rounded-xl p-4">
+        <p class="text-xs text-gray-500">Puntos totales</p>
+        <p id="c6a-metric-total" class="text-2xl font-bold">—</p>
+      </div>
+      <div class="bg-white shadow rounded-xl p-4">
+        <p class="text-xs text-gray-500">Media</p>
+        <p id="c6a-metric-avg" class="text-2xl font-bold">—</p>
+      </div>
+      <div class="bg-white shadow rounded-xl p-4">
+        <p class="text-xs text-gray-500">Líder</p>
+        <p id="c6a-metric-leader" class="text-sm font-semibold">—</p>
+      </div>
+    </div>
+
+    <!-- Podio -->
+    <div class="grid md:grid-cols-3 gap-3">
+      <div class="bg-white shadow rounded-xl p-4 border-t-4 border-amber-400">
+        <p class="text-sm text-gray-500">🥇 1º</p>
+        <p id="c6a-p1" class="font-bold">—</p>
+        <p id="c6a-p1p" class="text-sm text-gray-700">— pts</p>
+      </div>
+      <div class="bg-white shadow rounded-xl p-4 border-t-4 border-gray-400">
+        <p class="text-sm text-gray-500">🥈 2º</p>
+        <p id="c6a-p2" class="font-bold">—</p>
+        <p id="c6a-p2p" class="text-sm text-gray-700">— pts</p>
+      </div>
+      <div class="bg-white shadow rounded-xl p-4 border-t-4 border-orange-400">
+        <p class="text-sm text-gray-500">🥉 3º</p>
+        <p id="c6a-p3" class="font-bold">—</p>
+        <p id="c6a-p3p" class="text-sm text-gray-700">— pts</p>
+      </div>
+    </div>
+
+    <!-- MVP de la semana -->
+    <div class="bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white rounded-xl p-4 shadow flex items-center justify-between">
+      <div>
+        <p class="text-sm opacity-90">Jugador/a de la semana</p>
+        <p id="c6a-mvp-name" class="text-xl font-extrabold">Aún sin elegir</p>
+      </div>
+      <div class="text-right">
+        <p id="c6a-mvp-points" class="text-sm opacity-90">— pts</p>
+        <button id="c6a-btn-clear-mvp" class="mt-2 px-3 py-1 rounded bg-white/15 hover:bg-white/25">Quitar MVP</button>
+      </div>
+    </div>
+
+    <!-- Registro rápido de objetivos -->
+    <div class="bg-white shadow rounded-xl p-4">
+      <h4 class="font-semibold mb-3">Registrar objetivo rápido</h4>
+      <div class="flex flex-col md:flex-row gap-2 items-stretch md:items-center">
+        <select id="c6a-quick-student" class="border rounded-lg px-3 py-2 flex-1"></select>
+        <select id="c6a-quick-reason" class="border rounded-lg px-3 py-2">
+          <option value="1">📚 Entrega de tareas (+1)</option>
+          <option value="1">🙌 Buena acción (+1)</option>
+          <option value="3">📖 Libro extra (+3)</option>
+          <option value="-1">❌ Falta de trabajo (-1)</option>
+          <option value="-3">🚫 Incidencia grave (-3)</option>
+        </select>
+        <button id="c6a-quick-apply" class="btn-primary px-4 py-2 rounded-lg">Aplicar</button>
+      </div>
+    </div>
+
+    <!-- Tabla de clasificación -->
+    <div class="overflow-x-auto bg-white shadow rounded-xl">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">#</th>
+            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Alumno</th>
+            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Puntos</th>
+            <th class="px-4 py-2"></th>
+          </tr>
+        </thead>
+        <tbody id="c6a-tbody" class="divide-y divide-gray-200"></tbody>
+      </table>
+    </div>
+
+    <!-- Editor de lista -->
+    <div id="c6a-editor" class="hidden bg-white shadow rounded-xl p-4">
+      <h4 class="font-semibold mb-2">Editar lista de alumnos</h4>
+      <p class="text-sm text-gray-600 mb-3">Escribe un nombre por línea. <strong>Se reiniciarán los puntos</strong> al aplicar cambios.</p>
+      <textarea id="c6a-textarea" class="w-full h-40 border rounded-lg p-3 font-mono text-sm"></textarea>
+      <div class="mt-3 flex gap-2">
+        <button id="c6a-editor-apply" class="px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">Aplicar cambios</button>
+        <button id="c6a-editor-cancel" class="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lógica ESPECÍFICA de 6ºA (encapsulada) -->
+  <script>
+    (function(){
+      const sec = document.getElementById('6a');
+      const KEY = 'fantasy_6a_roster_v1';
+      const KEY_MVP = 'fantasy_6a_mvp_v1';
+
+      const defaultNames = [
+        'Andrés','Camila','Guille','Marta','Óscar','Teresa','Iker','Ariadna','Raúl','Nerea',
+        'Gael','Luna','Santiago','Clara','Thiago','Iris','Rodrigo','Elisa','Nicolás','Ainhoa',
+        'Jorge','Vera','Sofía M.','Iván R.','Lucía G.'
+      ];
+
+      const $ = (sel)=>sec.querySelector(sel);
+
+      function load(){
+        try{
+          const raw = localStorage.getItem(KEY);
+          if(raw) return JSON.parse(raw);
+        }catch(e){}
+        return defaultNames.map(n=>({name:n, points:0}));
+      }
+      function save(){ localStorage.setItem(KEY, JSON.stringify(roster)); }
+
+      function loadMvp(){
+        try{
+          const raw = localStorage.getItem(KEY_MVP);
+          if(raw) return JSON.parse(raw); // {name, points}
+        }catch(e){}
+        return null;
+      }
+      function saveMvp(mvp){ 
+        if(mvp) localStorage.setItem(KEY_MVP, JSON.stringify(mvp));
+        else localStorage.removeItem(KEY_MVP);
+      }
+
+      let roster = load();
+      let mvp = loadMvp();
+
+      function sortRoster(){
+        roster.sort((a,b)=> b.points - a.points || a.name.localeCompare(b.name));
+      }
+
+      function stats(){
+        const count = roster.length;
+        const total = roster.reduce((s,a)=>s+a.points,0);
+        const avg = count? (total/count).toFixed(1) : '0.0';
+        const leader = roster[0]? roster[0].name+' ('+roster[0].points+')':'—';
+        $('#c6a-metric-count').textContent = count;
+        $('#c6a-metric-total').textContent = total;
+        $('#c6a-metric-avg').textContent = avg;
+        $('#c6a-metric-leader').textContent = leader;
+      }
+
+      function renderPodium(){
+        const p1 = roster[0], p2 = roster[1], p3 = roster[2];
+        $('#c6a-p1').textContent = p1? p1.name : '—';
+        $('#c6a-p1p').textContent = p1? p1.points+' pts':'— pts';
+        $('#c6a-p2').textContent = p2? p2.name : '—';
+        $('#c6a-p2p').textContent = p2? p2.points+' pts':'— pts';
+        $('#c6a-p3').textContent = p3? p3.name : '—';
+        $('#c6a-p3p').textContent = p3? p3.points+' pts':'— pts';
+      }
+
+      function renderMvp(){
+        if(mvp){
+          $('#c6a-mvp-name').textContent = mvp.name;
+          $('#c6a-mvp-points').textContent = mvp.points+' pts';
+        }else{
+          $('#c6a-mvp-name').textContent = 'Aún sin elegir';
+          $('#c6a-mvp-points').textContent = '— pts';
+        }
+      }
+
+      function renderSelects(){
+        const sel = $('#c6a-quick-student');
+        sel.innerHTML = '';
+        roster.forEach((a,idx)=>{
+          const opt = document.createElement('option');
+          opt.value = idx;
+          opt.textContent = a.name;
+          sel.appendChild(opt);
+        });
+      }
+
+      function renderTable(){
+        const tbody = $('#c6a-tbody');
+        tbody.innerHTML = '';
+        roster.forEach((a,idx)=>{
+          const tr = document.createElement('tr');
+          tr.className = (mvp && mvp.name===a.name) ? 'bg-amber-50' : '';
+          tr.innerHTML = `
+            <td class="px-4 py-2 text-sm text-gray-700">${idx+1}</td>
+            <td class="px-4 py-2 text-sm font-medium text-gray-900">${a.name}</td>
+            <td class="px-4 py-2 text-sm text-gray-700">${a.points}</td>
+            <td class="px-4 py-2 flex gap-1">
+              <button class="btn-primary text-xs px-2 py-1 rounded" data-action="plus" data-index="${idx}">+1</button>
+              <button class="bg-red-600 text-white text-xs px-2 py-1 rounded" data-action="minus" data-index="${idx}">-1</button>
+              <button class="bg-amber-500 text-white text-xs px-2 py-1 rounded" data-action="star" data-index="${idx}">⭐ MVP</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      function renderEditor(){
+        const ta = $('#c6a-textarea');
+        ta.value = roster.map(a=>a.name).join('\n');
+      }
+
+      function renderAll(){
+        sortRoster();
+        stats();
+        renderPodium();
+        renderMvp();
+        renderSelects();
+        renderTable();
+      }
+
+      // Eventos
+      $('#c6a-quick-apply').addEventListener('click', ()=>{
+        const idx = parseInt($('#c6a-quick-student').value,10);
+        const delta = parseInt($('#c6a-quick-reason').value,10);
+        if(isNaN(idx)||isNaN(delta)) return;
+        roster[idx].points = Math.max(0, roster[idx].points + delta);
+        save();
+        renderAll();
+      });
+
+      $('#c6a-btn-mvp').addEventListener('click', ()=>{
+        if(!roster.length) return;
+        const idx = Math.floor(Math.random()*roster.length);
+        mvp = { name: roster[idx].name, points: roster[idx].points };
+        saveMvp(mvp);
+        renderAll();
+      });
+
+      $('#c6a-btn-clear-mvp').addEventListener('click', ()=>{
+        mvp = null;
+        saveMvp(null);
+        renderAll();
+      });
+
+      $('#c6a-btn-reset').addEventListener('click', ()=>{
+        if(confirm('¿Seguro que quieres poner a 0 todos los puntos de 6ºA?')){
+          roster = roster.map(a=>({name:a.name, points:0}));
+          mvp = null;
+          save(); saveMvp(null);
+          renderAll();
+        }
+      });
+
+      // Tabla: delegación de eventos
+      $('#c6a-tbody').addEventListener('click', (e)=>{
+        const btn = e.target.closest('button');
+        if(!btn) return;
+        const idx = parseInt(btn.getAttribute('data-index'),10);
+        const action = btn.getAttribute('data-action');
+        if(Number.isNaN(idx)) return;
+
+        if(action==='plus'){ roster[idx].points = Math.max(0, roster[idx].points + 1); }
+        if(action==='minus'){ roster[idx].points = Math.max(0, roster[idx].points - 1); }
+        if(action==='star'){ mvp = { name: roster[idx].name, points: roster[idx].points }; saveMvp(mvp); }
+        save();
+        renderAll();
+      });
+
+      // Editor lista
+      const editor = $('#c6a-editor');
+      $('#c6a-btn-edit').addEventListener('click', ()=>{
+        editor.classList.toggle('hidden');
+        renderEditor();
+      });
+      $('#c6a-editor-cancel').addEventListener('click', ()=>{
+        editor.classList.add('hidden');
+      });
+      $('#c6a-editor-apply').addEventListener('click', ()=>{
+        const lines = $('#c6a-textarea').value.split('\n').map(s=>s.trim()).filter(Boolean);
+        if(!lines.length) return;
+        roster = lines.map(n=>({name:n, points:0}));
+        mvp = null;
+        save(); saveMvp(null);
+        editor.classList.add('hidden');
+        renderAll();
+      });
+
+      // Render SOLO cuando la sección esté visible
+      const obs = new MutationObserver(()=>{
+        if(!sec.classList.contains('hidden')) renderAll();
+      });
+      obs.observe(sec, { attributes:true });
+
+      if(!sec.classList.contains('hidden')) renderAll();
+    })();
+  </script>
+</section>
+</section>
+      <section id="6b" class="hidden">
+  <!-- 6ºB: Panel de clase (aislado) -->
+  <div class="flex flex-col gap-4">
+    <!-- Encabezado + Acciones -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+      <div>
+        <h3 class="text-3xl font-extrabold tracking-tight">Clase 6ºB</h3>
+        <p class="text-sm text-gray-600">Temporada 25/26 · Gestión local (solo en este dispositivo)</p>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <button id="c6b-btn-mvp" class="px-4 py-2 rounded-lg bg-sky-600 text-white hover:bg-sky-700 shadow">🎲 Sorteo MVP</button>
+        <button id="c6b-btn-reset" class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 shadow">🧹 Reset puntos</button>
+        <button id="c6b-btn-edit" class="px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-black shadow">✏️ Editar lista</button>
+      </div>
+    </div>
+
+    <!-- Tarjetas de métricas -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div class="bg-white shadow rounded-xl p-4">
+        <p class="text-xs text-gray-500">Alumnos</p>
+        <p id="c6b-metric-count" class="text-2xl font-bold">—</p>
+      </div>
+      <div class="bg-white shadow rounded-xl p-4">
+        <p class="text-xs text-gray-500">Puntos totales</p>
+        <p id="c6b-metric-total" class="text-2xl font-bold">—</p>
+      </div>
+      <div class="bg-white shadow rounded-xl p-4">
+        <p class="text-xs text-gray-500">Media</p>
+        <p id="c6b-metric-avg" class="text-2xl font-bold">—</p>
+      </div>
+      <div class="bg-white shadow rounded-xl p-4">
+        <p class="text-xs text-gray-500">Líder</p>
+        <p id="c6b-metric-leader" class="text-sm font-semibold">—</p>
+      </div>
+    </div>
+
+    <!-- Podio -->
+    <div class="grid md:grid-cols-3 gap-3">
+      <div class="bg-white shadow rounded-xl p-4 border-t-4 border-amber-400">
+        <p class="text-sm text-gray-500">🥇 1º</p>
+        <p id="c6b-p1" class="font-bold">—</p>
+        <p id="c6b-p1p" class="text-sm text-gray-700">— pts</p>
+      </div>
+      <div class="bg-white shadow rounded-xl p-4 border-t-4 border-gray-400">
+        <p class="text-sm text-gray-500">🥈 2º</p>
+        <p id="c6b-p2" class="font-bold">—</p>
+        <p id="c6b-p2p" class="text-sm text-gray-700">— pts</p>
+      </div>
+      <div class="bg-white shadow rounded-xl p-4 border-t-4 border-orange-400">
+        <p class="text-sm text-gray-500">🥉 3º</p>
+        <p id="c6b-p3" class="font-bold">—</p>
+        <p id="c6b-p3p" class="text-sm text-gray-700">— pts</p>
+      </div>
+    </div>
+
+    <!-- MVP de la semana -->
+    <div class="bg-gradient-to-r from-sky-600 to-blue-600 text-white rounded-xl p-4 shadow flex items-center justify-between">
+      <div>
+        <p class="text-sm opacity-90">Jugador/a de la semana</p>
+        <p id="c6b-mvp-name" class="text-xl font-extrabold">Aún sin elegir</p>
+      </div>
+      <div class="text-right">
+        <p id="c6b-mvp-points" class="text-sm opacity-90">— pts</p>
+        <button id="c6b-btn-clear-mvp" class="mt-2 px-3 py-1 rounded bg-white/15 hover:bg-white/25">Quitar MVP</button>
+      </div>
+    </div>
+
+    <!-- Registro rápido de objetivos -->
+    <div class="bg-white shadow rounded-xl p-4">
+      <h4 class="font-semibold mb-3">Registrar objetivo rápido</h4>
+      <div class="flex flex-col md:flex-row gap-2 items-stretch md:items-center">
+        <select id="c6b-quick-student" class="border rounded-lg px-3 py-2 flex-1"></select>
+        <select id="c6b-quick-reason" class="border rounded-lg px-3 py-2">
+          <option value="1">📚 Entrega de tareas (+1)</option>
+          <option value="1">🙌 Buena acción (+1)</option>
+          <option value="3">📖 Libro extra (+3)</option>
+          <option value="-1">❌ Falta de trabajo (-1)</option>
+          <option value="-3">🚫 Incidencia grave (-3)</option>
+        </select>
+        <button id="c6b-quick-apply" class="btn-primary px-4 py-2 rounded-lg">Aplicar</button>
+      </div>
+    </div>
+
+    <!-- Tabla de clasificación -->
+    <div class="overflow-x-auto bg-white shadow rounded-xl">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">#</th>
+            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Alumno</th>
+            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Puntos</th>
+            <th class="px-4 py-2"></th>
+          </tr>
+        </thead>
+        <tbody id="c6b-tbody" class="divide-y divide-gray-200"></tbody>
+      </table>
+    </div>
+
+    <!-- Editor de lista -->
+    <div id="c6b-editor" class="hidden bg-white shadow rounded-xl p-4">
+      <h4 class="font-semibold mb-2">Editar lista de alumnos</h4>
+      <p class="text-sm text-gray-600 mb-3">Escribe un nombre por línea. <strong>Se reiniciarán los puntos</strong> al aplicar cambios.</p>
+      <textarea id="c6b-textarea" class="w-full h-40 border rounded-lg p-3 font-mono text-sm"></textarea>
+      <div class="mt-3 flex gap-2">
+        <button id="c6b-editor-apply" class="px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">Aplicar cambios</button>
+        <button id="c6b-editor-cancel" class="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lógica ESPECÍFICA de 6ºB (encapsulada) -->
+  <script>
+    (function(){
+      const sec = document.getElementById('6b');
+      const KEY = 'fantasy_6b_roster_v1';
+      const KEY_MVP = 'fantasy_6b_mvp_v1';
+
+      const defaultNames = [
+        'Aarón','Blanca','Carlos','Diana','Edgar','Fiona','Germán','Helena','Ismael','Jana',
+        'Kai','Laura','Miguel','Nadia','Omar','Patricia','Quim','Rocío','Saúl','Tamara',
+        'Ulises','Vanesa','Walter','Xiana','Yago'
+      ];
+
+      const $ = (sel)=>sec.querySelector(sel);
+
+      function load(){
+        try{
+          const raw = localStorage.getItem(KEY);
+          if(raw) return JSON.parse(raw);
+        }catch(e){}
+        return defaultNames.map(n=>({name:n, points:0}));
+      }
+      function save(){ localStorage.setItem(KEY, JSON.stringify(roster)); }
+
+      function loadMvp(){
+        try{
+          const raw = localStorage.getItem(KEY_MVP);
+          if(raw) return JSON.parse(raw); // {name, points}
+        }catch(e){}
+        return null;
+      }
+      function saveMvp(mvp){ 
+        if(mvp) localStorage.setItem(KEY_MVP, JSON.stringify(mvp));
+        else localStorage.removeItem(KEY_MVP);
+      }
+
+      let roster = load();
+      let mvp = loadMvp();
+
+      function sortRoster(){
+        roster.sort((a,b)=> b.points - a.points || a.name.localeCompare(b.name));
+      }
+
+      function stats(){
+        const count = roster.length;
+        const total = roster.reduce((s,a)=>s+a.points,0);
+        const avg = count? (total/count).toFixed(1) : '0.0';
+        const leader = roster[0]? roster[0].name+' ('+roster[0].points+')':'—';
+        $('#c6b-metric-count').textContent = count;
+        $('#c6b-metric-total').textContent = total;
+        $('#c6b-metric-avg').textContent = avg;
+        $('#c6b-metric-leader').textContent = leader;
+      }
+
+      function renderPodium(){
+        const p1 = roster[0], p2 = roster[1], p3 = roster[2];
+        $('#c6b-p1').textContent = p1? p1.name : '—';
+        $('#c6b-p1p').textContent = p1? p1.points+' pts':'— pts';
+        $('#c6b-p2').textContent = p2? p2.name : '—';
+        $('#c6b-p2p').textContent = p2? p2.points+' pts':'— pts';
+        $('#c6b-p3').textContent = p3? p3.name : '—';
+        $('#c6b-p3p').textContent = p3? p3.points+' pts':'— pts';
+      }
+
+      function renderMvp(){
+        if(mvp){
+          $('#c6b-mvp-name').textContent = mvp.name;
+          $('#c6b-mvp-points').textContent = mvp.points+' pts';
+        }else{
+          $('#c6b-mvp-name').textContent = 'Aún sin elegir';
+          $('#c6b-mvp-points').textContent = '— pts';
+        }
+      }
+
+      function renderSelects(){
+        const sel = $('#c6b-quick-student');
+        sel.innerHTML = '';
+        roster.forEach((a,idx)=>{
+          const opt = document.createElement('option');
+          opt.value = idx;
+          opt.textContent = a.name;
+          sel.appendChild(opt);
+        });
+      }
+
+      function renderTable(){
+        const tbody = $('#c6b-tbody');
+        tbody.innerHTML = '';
+        roster.forEach((a,idx)=>{
+          const tr = document.createElement('tr');
+          tr.className = (mvp && mvp.name===a.name) ? 'bg-amber-50' : '';
+          tr.innerHTML = `
+            <td class="px-4 py-2 text-sm text-gray-700">${idx+1}</td>
+            <td class="px-4 py-2 text-sm font-medium text-gray-900">${a.name}</td>
+            <td class="px-4 py-2 text-sm text-gray-700">${a.points}</td>
+            <td class="px-4 py-2 flex gap-1">
+              <button class="btn-primary text-xs px-2 py-1 rounded" data-action="plus" data-index="${idx}">+1</button>
+              <button class="bg-red-600 text-white text-xs px-2 py-1 rounded" data-action="minus" data-index="${idx}">-1</button>
+              <button class="bg-amber-500 text-white text-xs px-2 py-1 rounded" data-action="star" data-index="${idx}">⭐ MVP</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      function renderEditor(){
+        const ta = $('#c6b-textarea');
+        ta.value = roster.map(a=>a.name).join('\n');
+      }
+
+      function renderAll(){
+        sortRoster();
+        stats();
+        renderPodium();
+        renderMvp();
+        renderSelects();
+        renderTable();
+      }
+
+      // Eventos
+      $('#c6b-quick-apply').addEventListener('click', ()=>{
+        const idx = parseInt($('#c6b-quick-student').value,10);
+        const delta = parseInt($('#c6b-quick-reason').value,10);
+        if(isNaN(idx)||isNaN(delta)) return;
+        roster[idx].points = Math.max(0, roster[idx].points + delta);
+        save();
+        renderAll();
+      });
+
+      $('#c6b-btn-mvp').addEventListener('click', ()=>{
+        if(!roster.length) return;
+        const idx = Math.floor(Math.random()*roster.length);
+        mvp = { name: roster[idx].name, points: roster[idx].points };
+        saveMvp(mvp);
+        renderAll();
+      });
+
+      $('#c6b-btn-clear-mvp').addEventListener('click', ()=>{
+        mvp = null;
+        saveMvp(null);
+        renderAll();
+      });
+
+      $('#c6b-btn-reset').addEventListener('click', ()=>{
+        if(confirm('¿Seguro que quieres poner a 0 todos los puntos de 6ºB?')){
+          roster = roster.map(a=>({name:a.name, points:0}));
+          mvp = null;
+          save(); saveMvp(null);
+          renderAll();
+        }
+      });
+
+      // Tabla: delegación de eventos
+      $('#c6b-tbody').addEventListener('click', (e)=>{
+        const btn = e.target.closest('button');
+        if(!btn) return;
+        const idx = parseInt(btn.getAttribute('data-index'),10);
+        const action = btn.getAttribute('data-action');
+        if(Number.isNaN(idx)) return;
+
+        if(action==='plus'){ roster[idx].points = Math.max(0, roster[idx].points + 1); }
+        if(action==='minus'){ roster[idx].points = Math.max(0, roster[idx].points - 1); }
+        if(action==='star'){ mvp = { name: roster[idx].name, points: roster[idx].points }; saveMvp(mvp); }
+        save();
+        renderAll();
+      });
+
+      // Editor lista
+      const editor = $('#c6b-editor');
+      $('#c6b-btn-edit').addEventListener('click', ()=>{
+        editor.classList.toggle('hidden');
+        renderEditor();
+      });
+      $('#c6b-editor-cancel').addEventListener('click', ()=>{
+        editor.classList.add('hidden');
+      });
+      $('#c6b-editor-apply').addEventListener('click', ()=>{
+        const lines = $('#c6b-textarea').value.split('\n').map(s=>s.trim()).filter(Boolean);
+        if(!lines.length) return;
+        roster = lines.map(n=>({name:n, points:0}));
+        mvp = null;
+        save(); saveMvp(null);
+        editor.classList.add('hidden');
+        renderAll();
+      });
+
+      // Render SOLO cuando la sección esté visible
+      const obs = new MutationObserver(()=>{
+        if(!sec.classList.contains('hidden')) renderAll();
+      });
+      obs.observe(sec, { attributes:true });
+
+      if(!sec.classList.contains('hidden')) renderAll();
+    })();
+  </script>
+</section>
+</section>
       <section id="objetivos" class="hidden">
         <h3 class="text-2xl font-semibold mb-4">Objetivos</h3>
         <p class="mb-6">La <strong>Liga Fantasy NSS</strong> es una propuesta de gamificación diseñada para transformar el día a día en clase en una experiencia divertida, motivadora y educativa. A través de un sistema de puntos y recompensas, se reconoce el esfuerzo, la constancia, el comportamiento positivo y la implicación tanto en el colegio como en casa.</p>
