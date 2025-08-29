@@ -1313,11 +1313,13 @@
       background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
     }
     #objetivos .ring-grad {
-      box-shadow: 0 1px 0 rgba(0,0,0,.03);
-      background:
-        radial-gradient(1000px 80px at 10% -20%, rgba(99,102,241,.15), transparent 60%),
-        radial-gradient(900px 100px at 90% -30%, rgba(59,130,246,.18), transparent 60%);
-    }
+  /* Contraste mejorado (fondo claro real) */
+  background:
+    radial-gradient(1000px 120px at 10% -20%, rgba(99,102,241,.18), transparent 60%),
+    radial-gradient(900px 140px at 90% -30%, rgba(37,99,235,.22), transparent 60%),
+    linear-gradient(180deg, #f5f7ff 0%, #eef2ff 100%);
+  box-shadow: 0 4px 20px rgba(2,6,23,.06);
+}
     #objetivos .confetti {
       position: relative; overflow: hidden;
     }
@@ -1335,12 +1337,12 @@
   </style>
 
   <!-- Cabecera decorada -->
-  <div class="ring-grad rounded-2xl p-6 md:p-8 mb-6 text-white relative overflow-hidden">
-    <div class="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/10 blur-2xl"></div>
-    <h3 class="text-3xl md:text-4xl font-extrabold drop-shadow-sm obj-reveal">Objetivos</h3>
-    <p class="mt-1 text-white/90 obj-reveal">La base de la Liga: esfuerzo, compañerismo y constancia.</p>
-  </div>
-
+ <!-- Cabecera decorada (contraste mejorado) -->
+<div class="ring-grad rounded-2xl p-6 md:p-8 mb-6 text-gray-900 relative overflow-hidden border border-indigo-100">
+  <div class="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-indigo-500/10 blur-2xl"></div>
+  <h3 class="text-3xl md:text-4xl font-extrabold tracking-tight obj-reveal text-slate-900">Objetivos</h3>
+  <p class="mt-1 obj-reveal text-slate-600">La base de la Liga: esfuerzo, compañerismo y constancia.</p>
+</div>
   <!-- Cuerpo con animaciones de aparición -->
   <div class="grid gap-6">
     <div class="card rounded-2xl p-5 shadow obj-reveal confetti">
