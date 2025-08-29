@@ -1301,43 +1301,167 @@
   </script>
 </section>
 </section>
-      <section id="objetivos" class="hidden">
-        <h3 class="text-2xl font-semibold mb-4">Objetivos</h3>
-        <p class="mb-6">La <strong>Liga Fantasy NSS</strong> es una propuesta de gamificación diseñada para transformar el día a día en clase en una experiencia divertida, motivadora y educativa. A través de un sistema de puntos y recompensas, se reconoce el esfuerzo, la constancia, el comportamiento positivo y la implicación tanto en el colegio como en casa.</p>
-        <p class="mb-6">Cada alumno puede ir sumando puntos a lo largo de la semana por cumplir tareas, participar en clase, ayudar a los compañeros o mostrar una actitud ejemplar. La idea es que entiendan que su trabajo diario y su compromiso tienen valor, y que ese valor se traduce en recompensas simbólicas que fomentan la responsabilidad y el compañerismo.</p>
-        <p class="mb-6">El objetivo no es competir contra los demás, sino superarse a uno mismo y formar parte de un equipo donde todos suman. De este modo, se refuerza el aprendizaje, el esfuerzo personal y el clima positivo en el aula.</p>
+     <section id="objetivos" class="hidden">
+  <style>
+    /* Estilos locales SOLO para #objetivos */
+    #objetivos .obj-reveal { 
+      opacity: 0; transform: translateY(12px) scale(.98);
+      transition: all .55s cubic-bezier(.22,.8,.3,1);
+    }
+    #objetivos .obj-show { opacity: 1; transform: translateY(0) scale(1); }
+    #objetivos .card {
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    }
+    #objetivos .ring-grad {
+      box-shadow: 0 1px 0 rgba(0,0,0,.03);
+      background:
+        radial-gradient(1000px 80px at 10% -20%, rgba(99,102,241,.15), transparent 60%),
+        radial-gradient(900px 100px at 90% -30%, rgba(59,130,246,.18), transparent 60%);
+    }
+    #objetivos .confetti {
+      position: relative; overflow: hidden;
+    }
+    #objetivos .confetti::after {
+      content: "";
+      position: absolute; inset: -2px;
+      background:
+        radial-gradient(6px 6px at 12% 18%, rgba(99,102,241,.25) 40%, transparent 41%) repeat,
+        radial-gradient(5px 5px at 78% 22%, rgba(16,185,129,.25) 40%, transparent 41%) repeat,
+        radial-gradient(5px 5px at 22% 76%, rgba(244,114,182,.25) 40%, transparent 41%) repeat,
+        radial-gradient(6px 6px at 84% 74%, rgba(59,130,246,.25) 40%, transparent 41%) repeat;
+      background-size: 160px 160px;
+      pointer-events: none; opacity: .7;
+    }
+  </style>
 
-        <h4 class="text-xl font-bold mt-8 mb-2">Sistema de puntuación</h4>
-        <ul class="list-disc pl-5 space-y-1">
-          <li>📖 <strong>Leer un libro extra:</strong> +3 puntos</li>
-          <li>📚 <strong>Entrega de tareas:</strong> +1 punto</li>
-          <li>🙌 <strong>Buena acción o ayuda en clase:</strong> +1 punto</li>
-          <li>❌ <strong>Falta de trabajo:</strong> -1 punto</li>
-          <li>🚫 <strong>Incidencia grave:</strong> -3 puntos</li>
-        </ul>
-      </section>
-     <section id="recompensas" class="hidden">
-        <h3 class="text-2xl font-semibold mb-4"> Recompensas – Liga Fantasy NSS</h3>
-        <p class="mb-6">Estas recompensas están diseñadas para premiar el esfuerzo, la constancia y el comportamiento positivo en el aula. Se otorgan según el puesto que ocupen en el ranking de la liga.</p>
-        <div class="overflow-x-auto">
-          <table class="min-w-full bg-white shadow rounded-lg overflow-hidden">
-            <thead class="bg-gray-800 text-white">
-              <tr>
-                <th class="p-3 text-left">🏅 Puesto</th>
-                <th class="p-3 text-left">🎁 Recompensa</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200">
-              <tr><td class="p-3">🥇 1º al 3º</td><td class="p-3">🟨 <strong>COMODÍN EXAMEN</strong> → Puede pedir ayuda al profesor en una pregunta del examen.</td></tr>
-              <tr><td class="p-3">🥈 4º al 6º</td><td class="p-3">⏱️ <strong>+5 minutos extra</strong> para terminar un examen.</td></tr>
-              <tr><td class="p-3">🥉 7º al 10º</td><td class="p-3">🪑 <strong>Elige su sitio</strong> en clase durante 3 días.</td></tr>
-              <tr><td class="p-3">🟦 11º al 15º</td><td class="p-3">✅ <strong>Un positivo</strong> extra en el área que elija.</td></tr>
-              <tr><td class="p-3">🟨 16º al 20º</td><td class="p-3">❌ <strong>Quitar un negativo</strong> de cualquier área.</td></tr>
-              <tr><td class="p-3">🟩 21º al 25º</td><td class="p-3">🖍️ <strong>Responsable de material</strong> por un día (reparto, organización, ayuda en clase).</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+  <!-- Cabecera decorada -->
+  <div class="ring-grad rounded-2xl p-6 md:p-8 mb-6 text-white relative overflow-hidden">
+    <div class="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/10 blur-2xl"></div>
+    <h3 class="text-3xl md:text-4xl font-extrabold drop-shadow-sm obj-reveal">Objetivos</h3>
+    <p class="mt-1 text-white/90 obj-reveal">La base de la Liga: esfuerzo, compañerismo y constancia.</p>
+  </div>
+
+  <!-- Cuerpo con animaciones de aparición -->
+  <div class="grid gap-6">
+    <div class="card rounded-2xl p-5 shadow obj-reveal confetti">
+      <p class="mb-6">La <strong>Liga Fantasy NSS</strong> es una propuesta de gamificación diseñada para transformar el día a día en clase en una experiencia divertida, motivadora y educativa. A través de un sistema de puntos y recompensas, se reconoce el esfuerzo, la constancia, el comportamiento positivo y la implicación tanto en el colegio como en casa.</p>
+      <p class="mb-6">Cada alumno puede ir sumando puntos a lo largo de la semana por cumplir tareas, participar en clase, ayudar a los compañeros o mostrar una actitud ejemplar. La idea es que entiendan que su trabajo diario y su compromiso tienen valor, y que ese valor se traduce en recompensas simbólicas que fomentan la responsabilidad y el compañerismo.</p>
+      <p class="mb-6">El objetivo no es competir contra los demás, sino superarse a uno mismo y formar parte de un equipo donde todos suman. De este modo, se refuerza el aprendizaje, el esfuerzo personal y el clima positivo en el aula.</p>
+    </div>
+
+    <div class="card rounded-2xl p-5 shadow obj-reveal">
+      <h4 class="text-xl font-bold mb-3 flex items-center gap-2">
+        <span class="inline-flex w-8 h-8 items-center justify-center rounded-full bg-indigo-600 text-white">🎯</span>
+        Sistema de puntuación
+      </h4>
+      <ul class="list-disc pl-5 space-y-1">
+        <li>📖 <strong>Leer un libro extra:</strong> +3 puntos</li>
+        <li>📚 <strong>Entrega de tareas:</strong> +1 punto</li>
+        <li>🙌 <strong>Buena acción o ayuda en clase:</strong> +1 punto</li>
+        <li>❌ <strong>Falta de trabajo:</strong> -1 punto</li>
+        <li>🚫 <strong>Incidencia grave:</strong> -3 puntos</li>
+      </ul>
+
+      <!-- Chips decorativos (no cambian el contenido, solo estética) -->
+      <div class="mt-4 flex flex-wrap gap-2">
+        <span class="px-3 py-1 text-xs rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">Constancia</span>
+        <span class="px-3 py-1 text-xs rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">Trabajo en equipo</span>
+        <span class="px-3 py-1 text-xs rounded-full bg-amber-50 text-amber-700 border border-amber-200">Autonomía</span>
+        <span class="px-3 py-1 text-xs rounded-full bg-pink-50 text-pink-700 border border-pink-200">Actitud positiva</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script de aparición progresiva SOLO cuando la sección está visible -->
+  <script>
+    (function(){
+      const sec = document.getElementById('objetivos');
+      function reveal(){
+        const items = sec.querySelectorAll('.obj-reveal');
+        items.forEach((el, i)=> setTimeout(()=> el.classList.add('obj-show'), 90*i));
+      }
+      const mo = new MutationObserver(()=>{ if(!sec.classList.contains('hidden')) reveal(); });
+      mo.observe(sec, { attributes:true });
+      if(!sec.classList.contains('hidden')) reveal();
+    })();
+  </script>
+</section>
+<section id="recompensas" class="hidden">
+  <style>
+    /* Estilos locales SOLO para #recompensas */
+    #recompensas .rec-reveal { 
+      opacity: 0; transform: translateY(12px);
+      transition: all .5s cubic-bezier(.22,.8,.3,1);
+    }
+    #recompensas .rec-show { opacity: 1; transform: translateY(0); }
+    #recompensas .grad-wrap {
+      background: linear-gradient(180deg, #eef2ff 0%, #f0f9ff 100%);
+    }
+    /* Colores de borde por fila (manteniendo tu contenido intacto) */
+    #recompensas tbody tr:nth-child(1){ border-left: 4px solid #f59e0b; } /* oro */
+    #recompensas tbody tr:nth-child(2){ border-left: 4px solid #9ca3af; } /* plata */
+    #recompensas tbody tr:nth-child(3){ border-left: 4px solid #fb923c; } /* bronce */
+    #recompensas tbody tr:nth-child(4){ border-left: 4px solid #3b82f6; }
+    #recompensas tbody tr:nth-child(5){ border-left: 4px solid #fbbf24; }
+    #recompensas tbody tr:nth-child(6){ border-left: 4px solid #10b981; }
+    #recompensas .table-wrap { 
+      border-radius: 1rem; overflow: hidden; 
+      box-shadow: 0 6px 18px rgba(2,6,23,.08);
+    }
+    #recompensas table tbody tr:hover { background: #fffbeb; } /* sutil hover */
+  </style>
+
+  <!-- Cabecera con gradiente -->
+  <div class="grad-wrap rounded-2xl p-6 md:p-8 mb-6 relative">
+    <h3 class="text-3xl md:text-4xl font-extrabold text-gray-900 rec-reveal"> Recompensas – Liga Fantasy NSS</h3>
+    <p class="text-gray-600 mt-1 rec-reveal">Premiamos el esfuerzo sostenido y la actitud positiva en el aula.</p>
+    <div class="absolute -right-6 -top-6 w-24 h-24 rounded-full bg-white/40 blur-xl"></div>
+  </div>
+
+  <div class="rec-reveal">
+    <p class="mb-6 text-gray-700">Estas recompensas están diseñadas para premiar el esfuerzo, la constancia y el comportamiento positivo en el aula. Se otorgan según el puesto que ocupen en el ranking de la liga.</p>
+
+    <div class="overflow-x-auto table-wrap bg-white">
+      <table class="min-w-full">
+        <thead class="bg-gray-900 text-white">
+          <tr>
+            <th class="p-3 text-left">🏅 Puesto</th>
+            <th class="p-3 text-left">🎁 Recompensa</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          <tr><td class="p-3">🥇 1º al 3º</td><td class="p-3">🟨 <strong>COMODÍN EXAMEN</strong> → Puede pedir ayuda al profesor en una pregunta del examen.</td></tr>
+          <tr><td class="p-3">🥈 4º al 6º</td><td class="p-3">⏱️ <strong>+5 minutos extra</strong> para terminar un examen.</td></tr>
+          <tr><td class="p-3">🥉 7º al 10º</td><td class="p-3">🪑 <strong>Elige su sitio</strong> en clase durante 3 días.</td></tr>
+          <tr><td class="p-3">🟦 11º al 15º</td><td class="p-3">✅ <strong>Un positivo</strong> extra en el área que elija.</td></tr>
+          <tr><td class="p-3">🟨 16º al 20º</td><td class="p-3">❌ <strong>Quitar un negativo</strong> de cualquier área.</td></tr>
+          <tr><td class="p-3">🟩 21º al 25º</td><td class="p-3">🖍️ <strong>Responsable de material</strong> por un día (reparto, organización, ayuda en clase).</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Píldoras informativas (solo estilo/decoración) -->
+    <div class="mt-4 flex flex-wrap gap-2">
+      <span class="px-3 py-1 text-xs rounded-full bg-amber-50 text-amber-700 border border-amber-200">Reconocimiento</span>
+      <span class="px-3 py-1 text-xs rounded-full bg-blue-50 text-blue-700 border border-blue-200">Responsabilidad</span>
+      <span class="px-3 py-1 text-xs rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">Motivación</span>
+    </div>
+  </div>
+
+  <!-- Animación de aparición SOLO cuando la sección está visible -->
+  <script>
+    (function(){
+      const sec = document.getElementById('recompensas');
+      function reveal(){
+        const items = sec.querySelectorAll('.rec-reveal');
+        items.forEach((el, i)=> setTimeout(()=> el.classList.add('rec-show'), 100*i));
+      }
+      const mo = new MutationObserver(()=>{ if(!sec.classList.contains('hidden')) reveal(); });
+      mo.observe(sec, { attributes:true });
+      if(!sec.classList.contains('hidden')) reveal();
+    })();
+  </script>
+</section>
           <section id="entrevistas" class="hidden">
         <h3 class="text-2xl font-semibold mb-4">Galería y Entrevistas</h3>
         <p>Fotos y entrevistas destacadas aparecerán aquí.</p>
