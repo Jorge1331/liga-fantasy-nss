@@ -1985,5 +1985,68 @@
       document.getElementById('nav-top').classList.add('hidden');
     }
   </script>
-</body>
+</body><!-- Gate PIN docente -->
+<div id="gate" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50">
+  <div class="bg-white rounded-2xl p-6 w-[min(92vw,420px)]">
+    <h4 id="gate-title" class="text-xl font-bold mb-2">Introduce PIN</h4>
+    <p id="gate-desc" class="text-sm text-gray-600 mb-4">Solo personal docente.</p>
+    <input id="gate-pin" type="password" inputmode="numeric" maxlength="8" class="w-full border rounded-lg px-3 py-2 mb-3" placeholder="••••" />
+    <div class="flex gap-2 justify-end">
+      <button id="gate-cancel" class="px-3 py-2 rounded bg-gray-200">Cancelar</button>
+      <button id="gate-ok" class="px-3 py-2 rounded bg-blue-600 text-white">Aceptar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // --- PIN docente local (hash con WebCrypto) ---
+  const PIN_KEY='fantasy_admin_pin_hash_v1';
+  let _unlocked=false;
+  async function sha256(txt){
+    const enc = new TextEncoder().encode(txt);
+    const buf = await crypto.subtle.digest('SHA-256', enc);
+    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  }
+  function openGate(mode='check'){
+    const gate = document.getElementById('gate');
+    const title= document.getElementById('gate-title');
+    const desc = document.getElementById('gate-desc');
+    const pin  = document.getElementById('gate-pin');
+    gate.classList.remove('hidden');
+    const has = localStorage.getItem(PIN_KEY);
+    if(!has){ title.textContent='Crea tu PIN'; desc.textContent='Primera vez: guarda un PIN docente.'; }
+    else { title.textContent='Introduce PIN'; desc.textContent='Solo personal docente.'; }
+    pin.value=''; pin.focus();
+  }
+  async function handleGateOk(){
+    const pin = document.getElementById('gate-pin').value.trim();
+    const has = localStorage.getItem(PIN_KEY);
+    if(!has){
+      if(pin.length<4){ alert('El PIN debe tener al menos 4 dígitos.'); return; }
+      localStorage.setItem(PIN_KEY, await sha256(pin));
+      _unlocked=true;
+      document.getElementById('gate').classList.add('hidden');
+      startApp(); // entra tras crear PIN
+      return;
+    }else{
+      const ok = (await sha256(pin))===has;
+      if(!ok){ alert('PIN incorrecto.'); return; }
+      _unlocked=true;
+      document.getElementById('gate').classList.add('hidden');
+      startApp(); // entra tras validar PIN
+    }
+  }
+  document.getElementById('gate-ok').addEventListener('click', handleGateOk);
+  document.getElementById('gate-cancel').addEventListener('click', ()=> document.getElementById('gate').classList.add('hidden'));
+
+  // Hook al CTA del hero: pedimos PIN antes de entrar
+  // Cambia el onclick del botón del hero a openGate() o añade este listener:
+  document.addEventListener('click', (e)=>{
+    const btn = e.target.closest('button');
+    if(!btn) return;
+    if(btn.textContent.includes('Entrar a la Liga')){
+      e.preventDefault(); openGate();
+    }
+  });
+</script>
 </html>
