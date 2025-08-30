@@ -436,10 +436,14 @@
   clear.className='px-3 py-2 rounded bg-amber-50 hover:bg-amber-100 text-amber-700 w-full text-sm';
   clear.textContent = '🧹 Quitar todas';
   clear.addEventListener('click', (ev)=>{
-    ev.stopPropagation();
-    roster[idx].badges = [];
-    save(); renderAll(); closeBadgePicker();
-  });
+  ev.stopPropagation();
+  // Restar puntos correspondientes a las insignias actuales
+  const current = groupBadges(roster[idx].badges || []);
+  adjustPointsByBadgeMap(idx, current, -1);
+  // Limpiar insignias
+  roster[idx].badges = [];
+  save(); renderAll(); closeBadgePicker();
+});
   pop.appendChild(clear);
 
   cell.appendChild(pop);
@@ -788,6 +792,20 @@ function closeBadgePicker(){
         { key:'constancia',    icon:'⭐', label:'Constancia' },
         { key:'companierismo', icon:'🤝', label:'Compañerismo' },
         { key:'lectura',       icon:'📖', label:'Lectura' },
+        const BADGE_POINTS = {
+  constancia: 1,
+  companierismo: 1,
+  lectura: 1,
+};
+
+// Resta o suma puntos en base a un mapa {clave: cantidad}
+function adjustPointsByBadgeMap(idx, map, sign = +1){
+  const keys = Object.keys(map);
+  keys.forEach(k=>{
+    const val = (BADGE_POINTS[k] || 0) * (map[k] || 0) * sign;
+    roster[idx].points = Math.max(0, roster[idx].points + val);
+  });
+}
       ];
       function groupBadges(arr){
         const map = { constancia:0, companierismo:0, lectura:0 };
@@ -841,6 +859,19 @@ function closeBadgePicker(){
       }
       function closeBadgePicker(){ const el = document.getElementById('c5b-badge-pop'); if(el) el.remove(); }
       function addBadge(idx, key){ ensureBadges(); roster[idx].badges.push(key); save(); renderAll(); }
+     ensureBadges();
+  roster[idx].badges.push(key);
+
+  // Sumar puntos por la insignia
+  const inc = BADGE_POINTS[key] || 0;
+  if(inc) {
+    roster[idx].points = Math.max(0, roster[idx].points + inc);
+  }
+
+  save();
+  renderAll();
+}
+
       /* --------------------------------------- */
 
       let roster = load();
