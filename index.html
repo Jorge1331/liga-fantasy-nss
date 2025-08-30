@@ -2006,8 +2006,9 @@
     const gate = document.getElementById('gate');
     const title= document.getElementById('gate-title');
     const desc = document.getElementById('gate-desc');
-    const pin  = document.getElementById('gate-pin');
-    gate.classList.remove('hidden');
+    const pin  = document.getElementById('gate-pin').addEventListener('keydown', (e)=>{
+  if(e.key==='Enter') handleGateOk();
+});
     const has = localStorage.getItem(PIN_KEY);
     if(!has){ title.textContent='Crea tu PIN'; desc.textContent='Primera vez: guarda un PIN docente.'; }
     else { title.textContent='Introduce PIN'; desc.textContent='Solo personal docente.'; }
