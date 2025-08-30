@@ -6,34 +6,20 @@
   <title>LIGA FANTASY NSS 25/26</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-   /* ===== A11Y + CONTRASTE ===== */
-:focus-visible { outline: 3px solid var(--color-primary); outline-offset: 2px; border-radius: 10px; }
-button:focus-visible, a:focus-visible {
-  box-shadow: 0 0 0 4px rgba(29,78,216,.35), 0 0 0 6px rgba(255,255,255,1);
-}
-
-/* Tamaño táctil mínimo sin afectar a los botones pequeñitos (.text-xs) */
-button:not(.text-xs) { min-height: 40px; min-width: 44px; }
-
-/* Tablas: encabezados con más contraste */
-table thead th { color: #0f172a; font-weight: 700; }
-
-/* Respeta usuarios con reduce-motion */
-@media (prefers-reduced-motion: reduce) {
-  * { animation-duration: .001ms !important; transition-duration: .001ms !important; }
-}
-
-/* Chips de insignias (reutilizable) */
-.badge-chip {
-  display:inline-flex; align-items:center; gap:6px;
-  padding:2px 8px; border-radius:9999px; font-size:12px; line-height:1;
-  background: #eef2ff; color:#3730a3; border:1px solid #c7d2fe;
-}
-.badge-chip[data-type="constancia"]    { background:#ecfeff; color:#0f766e; border-color:#99f6e4; }
-.badge-chip[data-type="companierismo"] { background:#fff7ed; color:#9a3412; border-color:#fed7aa; }
-.badge-chip[data-type="lectura"]       { background:#f0f9ff; color:#075985; border-color:#bae6fd; }
-.badge-chip .count { font-weight:700; font-size:11px; opacity:.85; }
-
+    :root {
+      --color-primary:#1D4ED8;
+      --color-dark:#000000;
+      --color-light:#ffffff;
+    }
+    body {font-family:'Segoe UI',sans-serif;}
+    .btn-primary {background:var(--color-primary);color:var(--color-light);} 
+    .btn-primary:hover {background:#1746c5;}
+    .hero-bg {
+      background:linear-gradient(135deg,var(--color-primary) 0%,#0f1b3d 100%);
+    }
+    .skew-bottom {position:relative;}
+    .skew-bottom::after{content:"";position:absolute;bottom:-1px;left:0;width:100%;height:80px;background:var(--color-light);transform:skewY(3deg);transform-origin:0;}
+  </style>
 </head>
 <body class="min-h-screen bg-gray-100">
   <!-- Hero de Bienvenida -->
