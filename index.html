@@ -137,7 +137,7 @@
 
     <!-- Contenido -->
     <main class="flex-1 max-w-6xl mx-auto w-full p-4">
-      <section id="5a" class="hidden">
+     <section id="5a" class="hidden">
   <!-- 5ºA: Panel de clase (autosuficiente y aislado) -->
   <div class="flex flex-col gap-4">
     <!-- Encabezado + Acciones -->
@@ -220,26 +220,28 @@
       </div>
     </div>
 
-    <!-- Tabla de clasificación --><!-- Semana en curso (L–V) -->
-<div id="c5a-week" class="bg-white shadow rounded-xl p-4">
-  <div class="flex items-center justify-between">
-    <p class="font-semibold">Semana en curso (L–V)</p>
-    <p id="c5a-week-label" class="text-sm text-gray-500">0%</p>
-  </div>
-  <div class="h-3 bg-gray-100 rounded-full mt-2 overflow-hidden">
-    <div id="c5a-week-bar" class="h-3 bg-gradient-to-r from-indigo-500 to-blue-500" style="width:0%"></div>
-  </div>
-  <div class="flex gap-1 mt-2" id="c5a-week-days">
-    <span data-i="0" class="px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600">L</span>
-    <span data-i="1" class="px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600">M</span>
-    <span data-i="2" class="px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600">X</span>
-    <span data-i="3" class="px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600">J</span>
-    <span data-i="4" class="px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600">V</span>
-  </div>
-  <div id="c5a-reset-alert" class="hidden mt-3 px-3 py-2 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 text-sm">
-    Hace <span id="c5a-days-since">—</span> días del último reinicio. Considera usar “Reset puntos”.
-  </div>
-</div>
+    <!-- Semana en curso (L–V) -->
+    <div id="c5a-week" class="bg-white shadow rounded-xl p-4">
+      <div class="flex items-center justify-between">
+        <p class="font-semibold">Semana en curso (L–V)</p>
+        <p id="c5a-week-label" class="text-sm text-gray-500">0%</p>
+      </div>
+      <div class="h-3 bg-gray-100 rounded-full mt-2 overflow-hidden">
+        <div id="c5a-week-bar" class="h-3 bg-gradient-to-r from-indigo-500 to-blue-500" style="width:0%"></div>
+      </div>
+      <div class="flex gap-1 mt-2" id="c5a-week-days">
+        <span data-i="0" class="px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600">L</span>
+        <span data-i="1" class="px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600">M</span>
+        <span data-i="2" class="px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600">X</span>
+        <span data-i="3" class="px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600">J</span>
+        <span data-i="4" class="px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600">V</span>
+      </div>
+      <div id="c5a-reset-alert" class="hidden mt-3 px-3 py-2 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 text-sm">
+        Hace <span id="c5a-days-since">—</span> días del último reinicio. Considera usar “Reset puntos”.
+      </div>
+    </div>
+
+    <!-- Tabla de clasificación -->
     <div class="overflow-x-auto bg-white shadow rounded-xl">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
@@ -254,7 +256,7 @@
       </table>
     </div>
 
-    <!-- Editor de lista (oculto hasta pulsar Editar lista) -->
+    <!-- Editor de lista -->
     <div id="c5a-editor" class="hidden bg-white shadow rounded-xl p-4">
       <h4 class="font-semibold mb-2">Editar lista de alumnos</h4>
       <p class="text-sm text-gray-600 mb-3">Escribe un nombre por línea. <strong>Se reiniciarán los puntos</strong> al aplicar cambios.</p>
@@ -266,12 +268,13 @@
     </div>
   </div>
 
-  <!-- Lógica ESPECÍFICA de 5ºA (aislada y sin colisionar con el resto) -->
+  <!-- Lógica ESPECÍFICA de 5ºA (aislada) -->
   <script>
     (function(){
       const sec = document.getElementById('5a');
       const KEY = 'fantasy_5a_roster_v1';
       const KEY_MVP = 'fantasy_5a_mvp_v1';
+      const KEY_RESET = 'fantasy_5a_last_reset_v1';
 
       const defaultNames = [
         'Álvaro','Lucía','Martín','Sofía','Leo','Daniela','Mateo','Emma','Hugo','Valeria',
@@ -293,7 +296,7 @@
       function loadMvp(){
         try{
           const raw = localStorage.getItem(KEY_MVP);
-          if(raw) return JSON.parse(raw); // {name, points}
+          if(raw) return JSON.parse(raw);
         }catch(e){}
         return null;
       }
@@ -301,6 +304,53 @@
         if(mvp) localStorage.setItem(KEY_MVP, JSON.stringify(mvp));
         else localStorage.removeItem(KEY_MVP);
       }
+
+      // ---- Progreso semanal / reset ----
+      function getLastReset(){ const v = localStorage.getItem(KEY_RESET); return v? parseInt(v,10): null; }
+      function setLastReset(ts){ localStorage.setItem(KEY_RESET, String(ts)); }
+      function getWeekBounds(){
+        const now = new Date();
+        const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const mondayOffset = (d.getDay()+6)%7; // L=0
+        const start = new Date(d); start.setDate(d.getDate()-mondayOffset); start.setHours(0,0,0,0);
+        const end   = new Date(start); end.setDate(start.getDate()+4); end.setHours(23,59,59,999);
+        return { now, start, end };
+      }
+      function renderProgress(){
+        const bar   = $('#c5a-week-bar');
+        const label = $('#c5a-week-label');
+        const chips = $('#c5a-week-days')?.querySelectorAll('span') || [];
+        const alert = $('#c5a-reset-alert');
+        const daysSpan = $('#c5a-days-since');
+
+        const { now, start, end } = getWeekBounds();
+        const total = Math.max(1, end - start);
+        let pct = Math.max(0, Math.min(1, (now - start)/total));
+        if(now > end) pct = 1;
+        if(bar) bar.style.width = (pct*100).toFixed(0)+'%';
+        if(label) label.textContent = (pct*100).toFixed(0)+'%';
+
+        const dayIdx = Math.min(4, (now.getDay()+6)%7);
+        chips.forEach(el=>{
+          const i = parseInt(el.getAttribute('data-i'),10);
+          const active = (now > end) ? true : i<=dayIdx;
+          el.className = active
+            ? 'px-2 py-0.5 text-xs rounded bg-emerald-100 text-emerald-700'
+            : 'px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600';
+        });
+
+        const last = getLastReset();
+        if(!alert) return;
+        if(last){
+          const days = Math.floor((Date.now()-last)/(1000*60*60*24));
+          if(daysSpan) daysSpan.textContent = String(days);
+          alert.classList.toggle('hidden', days<7);
+        }else{
+          alert.classList.remove('hidden');
+          alert.innerHTML = 'Aún no se ha reiniciado esta clase. Usa <strong>“Reset puntos”</strong> al final de la semana.';
+        }
+      }
+      // -----------------------------------
 
       let roster = load();
       let mvp = loadMvp();
@@ -383,6 +433,7 @@
         renderMvp();
         renderSelects();
         renderTable();
+        renderProgress(); // ⬅️ NUEVO
       }
 
       // Eventos
@@ -414,10 +465,10 @@
           roster = roster.map(a=>({name:a.name, points:0}));
           mvp = null;
           save(); saveMvp(null);
+          setLastReset(Date.now()); // ⬅️ NUEVO: registrar fecha de reset
           renderAll();
         }
       });
-      const KEY_RESET = 'fantasy_5a_last_reset_v1';
 
       // Tabla: delegación de eventos
       $('#c5a-tbody').addEventListener('click', (e)=>{
@@ -438,57 +489,7 @@
       const editor = $('#c5a-editor');
       $('#c5a-btn-edit').addEventListener('click', ()=>{
         editor.classList.toggle('hidden');
-        renderEditor();function getLastReset(){
-  const v = localStorage.getItem(KEY_RESET);
-  return v ? parseInt(v,10) : null;
-}
-function setLastReset(ts){ localStorage.setItem(KEY_RESET, String(ts)); }
-
-function getWeekBounds(){
-  const now = new Date();
-  const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const mondayOffset = (d.getDay()+6)%7; // L=0
-  const start = new Date(d); start.setDate(d.getDate()-mondayOffset); start.setHours(0,0,0,0);
-  const end   = new Date(start); end.setDate(start.getDate()+4); end.setHours(23,59,59,999); // V
-  return { now, start, end };
-}
-
-function renderProgress(){
-  const bar   = $('#c5a-week-bar');
-  const label = $('#c5a-week-label');
-  const chips = $('#c5a-week-days')?.querySelectorAll('span') || [];
-  const alert = $('#c5a-reset-alert');
-  const daysSpan = $('#c5a-days-since');
-
-  const { now, start, end } = getWeekBounds();
-  const total = Math.max(1, end - start);
-  let pct = Math.max(0, Math.min(1, (now - start)/total));
-  if(now > end) pct = 1;
-  if(bar) bar.style.width = (pct*100).toFixed(0)+'%';
-  if(label) label.textContent = (pct*100).toFixed(0)+'%';
-
-  // Resalta días L–V alcanzados
-  const dayIdx = Math.min(4, (now.getDay()+6)%7);
-  chips.forEach(el=>{
-    const i = parseInt(el.getAttribute('data-i'),10);
-    const active = (now > end) ? true : i<=dayIdx;
-    el.className = active
-      ? 'px-2 py-0.5 text-xs rounded bg-emerald-100 text-emerald-700'
-      : 'px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600';
-  });
-
-  // Aviso de reset (cada 7 días)
-  const last = getLastReset();
-  if(!alert) return;
-  if(last){
-    const days = Math.floor((Date.now()-last)/(1000*60*60*24));
-    if(daysSpan) daysSpan.textContent = String(days);
-    alert.classList.toggle('hidden', days<7);
-  }else{
-    alert.classList.remove('hidden');
-    alert.innerHTML = 'Aún no se ha reiniciado esta clase. Usa <strong>“Reset puntos”</strong> al final de la semana.';
-  }
-}
+        renderEditor();
       });
       $('#c5a-editor-cancel').addEventListener('click', ()=>{
         editor.classList.add('hidden');
@@ -500,23 +501,18 @@ function renderProgress(){
         mvp = null;
         save(); saveMvp(null);
         editor.classList.add('hidden');
-        setLastReset(Date.now());
         renderAll();
-        renderProgress();
-
       });
 
-      // Render SOLO cuando la sección esté visible (no tocamos tu navegación)
+      // Render SOLO cuando la sección esté visible
       const obs = new MutationObserver(()=>{
         if(!sec.classList.contains('hidden')) renderAll();
       });
       obs.observe(sec, { attributes:true });
 
-      // Si por lo que sea ya está visible al cargar
       if(!sec.classList.contains('hidden')) renderAll();
     })();
   </script>
-</section>
 </section>
       <section id="5b" class="hidden">
   <!-- 5ºB: Panel de clase (aislado) -->
@@ -529,7 +525,7 @@ function renderProgress(){
       </div>
       <div class="flex flex-wrap gap-2">
         <button id="c5b-btn-mvp" class="px-4 py-2 rounded-lg bg-teal-600 text-white hover:bg-teal-700 shadow">🎲 Sorteo MVP</button>
-        <button id="c5b-btn-reset" class="px-4 py-2 rounded-lg bg-rose-600 text-white hover:bg-rose-700 shadow">🧹 Reset puntos</button>
+        <button id="c5b-btn-reset" class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 shadow">🧹 Reset puntos</button>
         <button id="c5b-btn-edit" class="px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-black shadow">✏️ Editar lista</button>
       </div>
     </div>
@@ -601,6 +597,27 @@ function renderProgress(){
       </div>
     </div>
 
+    <!-- Semana en curso (L–V) -->
+    <div id="c5b-week" class="bg-white shadow rounded-xl p-4">
+      <div class="flex items-center justify-between">
+        <p class="font-semibold">Semana en curso (L–V)</p>
+        <p id="c5b-week-label" class="text-sm text-gray-500">0%</p>
+      </div>
+      <div class="h-3 bg-gray-100 rounded-full mt-2 overflow-hidden">
+        <div id="c5b-week-bar" class="h-3 bg-gradient-to-r from-teal-500 to-emerald-500" style="width:0%"></div>
+      </div>
+      <div class="flex gap-1 mt-2" id="c5b-week-days">
+        <span data-i="0" class="px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600">L</span>
+        <span data-i="1" class="px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600">M</span>
+        <span data-i="2" class="px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600">X</span>
+        <span data-i="3" class="px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600">J</span>
+        <span data-i="4" class="px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600">V</span>
+      </div>
+      <div id="c5b-reset-alert" class="hidden mt-3 px-3 py-2 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 text-sm">
+        Hace <span id="c5b-days-since">—</span> días del último reinicio. Considera usar “Reset puntos”.
+      </div>
+    </div>
+
     <!-- Tabla de clasificación -->
     <div class="overflow-x-auto bg-white shadow rounded-xl">
       <table class="min-w-full divide-y divide-gray-200">
@@ -634,43 +651,79 @@ function renderProgress(){
       const sec = document.getElementById('5b');
       const KEY = 'fantasy_5b_roster_v1';
       const KEY_MVP = 'fantasy_5b_mvp_v1';
+      const KEY_RESET = 'fantasy_5b_last_reset_v1';
 
       const defaultNames = [
-        'Nora','Diego','Irene','Bruno','Aitana','Iván','Claudia','Javier','Olivia','Unai',
-        'Vega','Álex','Mencía','Héctor','Natalia','Samuel','Lola','Rubén','Elena','Gonzalo',
-        'Celia','Marcos','Alicia','Sergio','Violeta'
+        'Aarón','Blanca','Carlos','Diana','Edgar','Fiona','Germán','Helena','Ismael','Jana',
+        'Kai','Laura','Miguel','Nadia','Omar','Patricia','Quim','Rocío','Saúl','Tamara',
+        'Ulises','Vanesa','Walter','Xiana','Yago'
       ];
 
       const $ = (sel)=>sec.querySelector(sel);
 
       function load(){
-        try{
-          const raw = localStorage.getItem(KEY);
-          if(raw) return JSON.parse(raw);
-        }catch(e){}
+        try{ const raw = localStorage.getItem(KEY); if(raw) return JSON.parse(raw); }catch(e){}
         return defaultNames.map(n=>({name:n, points:0}));
       }
       function save(){ localStorage.setItem(KEY, JSON.stringify(roster)); }
 
       function loadMvp(){
-        try{
-          const raw = localStorage.getItem(KEY_MVP);
-          if(raw) return JSON.parse(raw); // {name, points}
-        }catch(e){}
+        try{ const raw = localStorage.getItem(KEY_MVP); if(raw) return JSON.parse(raw); }catch(e){}
         return null;
       }
-      function saveMvp(mvp){ 
-        if(mvp) localStorage.setItem(KEY_MVP, JSON.stringify(mvp));
-        else localStorage.removeItem(KEY_MVP);
+      function saveMvp(mvp){ if(mvp) localStorage.setItem(KEY_MVP, JSON.stringify(mvp)); else localStorage.removeItem(KEY_MVP); }
+
+      // ---- Progreso semanal / reset ----
+      function getLastReset(){ const v = localStorage.getItem(KEY_RESET); return v? parseInt(v,10): null; }
+      function setLastReset(ts){ localStorage.setItem(KEY_RESET, String(ts)); }
+      function getWeekBounds(){
+        const now = new Date();
+        const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const mondayOffset = (d.getDay()+6)%7;
+        const start = new Date(d); start.setDate(d.getDate()-mondayOffset); start.setHours(0,0,0,0);
+        const end   = new Date(start); end.setDate(start.getDate()+4); end.setHours(23,59,59,999);
+        return { now, start, end };
       }
+      function renderProgress(){
+        const bar   = $('#c5b-week-bar');
+        const label = $('#c5b-week-label');
+        const chips = $('#c5b-week-days')?.querySelectorAll('span') || [];
+        const alert = $('#c5b-reset-alert');
+        const daysSpan = $('#c5b-days-since');
+
+        const { now, start, end } = getWeekBounds();
+        const total = Math.max(1, end - start);
+        let pct = Math.max(0, Math.min(1, (now - start)/total));
+        if(now > end) pct = 1;
+        if(bar) bar.style.width = (pct*100).toFixed(0)+'%';
+        if(label) label.textContent = (pct*100).toFixed(0)+'%';
+
+        const dayIdx = Math.min(4, (now.getDay()+6)%7);
+        chips.forEach(el=>{
+          const i = parseInt(el.getAttribute('data-i'),10);
+          const active = (now > end) ? true : i<=dayIdx;
+          el.className = active
+            ? 'px-2 py-0.5 text-xs rounded bg-emerald-100 text-emerald-700'
+            : 'px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600';
+        });
+
+        const last = getLastReset();
+        if(!alert) return;
+        if(last){
+          const days = Math.floor((Date.now()-last)/(1000*60*60*24));
+          if(daysSpan) daysSpan.textContent = String(days);
+          alert.classList.toggle('hidden', days<7);
+        }else{
+          alert.classList.remove('hidden');
+          alert.innerHTML = 'Aún no se ha reiniciado esta clase. Usa <strong>“Reset puntos”</strong> al final de la semana.';
+        }
+      }
+      // -----------------------------------
 
       let roster = load();
       let mvp = loadMvp();
 
-      function sortRoster(){
-        roster.sort((a,b)=> b.points - a.points || a.name.localeCompare(b.name));
-      }
-
+      function sortRoster(){ roster.sort((a,b)=> b.points - a.points || a.name.localeCompare(b.name)); }
       function stats(){
         const count = roster.length;
         const total = roster.reduce((s,a)=>s+a.points,0);
@@ -681,7 +734,6 @@ function renderProgress(){
         $('#c5b-metric-avg').textContent = avg;
         $('#c5b-metric-leader').textContent = leader;
       }
-
       function renderPodium(){
         const p1 = roster[0], p2 = roster[1], p3 = roster[2];
         $('#c5b-p1').textContent = p1? p1.name : '—';
@@ -691,31 +743,16 @@ function renderProgress(){
         $('#c5b-p3').textContent = p3? p3.name : '—';
         $('#c5b-p3p').textContent = p3? p3.points+' pts':'— pts';
       }
-
       function renderMvp(){
-        if(mvp){
-          $('#c5b-mvp-name').textContent = mvp.name;
-          $('#c5b-mvp-points').textContent = mvp.points+' pts';
-        }else{
-          $('#c5b-mvp-name').textContent = 'Aún sin elegir';
-          $('#c5b-mvp-points').textContent = '— pts';
-        }
+        if(mvp){ $('#c5b-mvp-name').textContent = mvp.name; $('#c5b-mvp-points').textContent = mvp.points+' pts'; }
+        else { $('#c5b-mvp-name').textContent = 'Aún sin elegir'; $('#c5b-mvp-points').textContent = '— pts'; }
       }
-
       function renderSelects(){
-        const sel = $('#c5b-quick-student');
-        sel.innerHTML = '';
-        roster.forEach((a,idx)=>{
-          const opt = document.createElement('option');
-          opt.value = idx;
-          opt.textContent = a.name;
-          sel.appendChild(opt);
-        });
+        const sel = $('#c5b-quick-student'); sel.innerHTML = '';
+        roster.forEach((a,idx)=>{ const opt=document.createElement('option'); opt.value=idx; opt.textContent=a.name; sel.appendChild(opt); });
       }
-
       function renderTable(){
-        const tbody = $('#c5b-tbody');
-        tbody.innerHTML = '';
+        const tbody = $('#c5b-tbody'); tbody.innerHTML='';
         roster.forEach((a,idx)=>{
           const tr = document.createElement('tr');
           tr.className = (mvp && mvp.name===a.name) ? 'bg-amber-50' : '';
@@ -725,26 +762,16 @@ function renderProgress(){
             <td class="px-4 py-2 text-sm text-gray-700">${a.points}</td>
             <td class="px-4 py-2 flex gap-1">
               <button class="btn-primary text-xs px-2 py-1 rounded" data-action="plus" data-index="${idx}">+1</button>
-              <button class="bg-rose-600 text-white text-xs px-2 py-1 rounded" data-action="minus" data-index="${idx}">-1</button>
+              <button class="bg-red-600 text-white text-xs px-2 py-1 rounded" data-action="minus" data-index="${idx}">-1</button>
               <button class="bg-amber-500 text-white text-xs px-2 py-1 rounded" data-action="star" data-index="${idx}">⭐ MVP</button>
-            </td>
-          `;
+            </td>`;
           tbody.appendChild(tr);
         });
       }
-
-      function renderEditor(){
-        const ta = $('#c5b-textarea');
-        ta.value = roster.map(a=>a.name).join('\\n');
-      }
+      function renderEditor(){ const ta = $('#c5b-textarea'); ta.value = roster.map(a=>a.name).join('\n'); }
 
       function renderAll(){
-        sortRoster();
-        stats();
-        renderPodium();
-        renderMvp();
-        renderSelects();
-        renderTable();
+        sortRoster(); stats(); renderPodium(); renderMvp(); renderSelects(); renderTable(); renderProgress(); // ⬅️
       }
 
       // Eventos
@@ -753,73 +780,47 @@ function renderProgress(){
         const delta = parseInt($('#c5b-quick-reason').value,10);
         if(isNaN(idx)||isNaN(delta)) return;
         roster[idx].points = Math.max(0, roster[idx].points + delta);
-        save();
-        renderAll();
+        save(); renderAll();
       });
 
       $('#c5b-btn-mvp').addEventListener('click', ()=>{
         if(!roster.length) return;
         const idx = Math.floor(Math.random()*roster.length);
-        mvp = { name: roster[idx].name, points: roster[idx].points };
-        saveMvp(mvp);
-        renderAll();
+        mvp = { name: roster[idx].name, points: roster[idx].points }; saveMvp(mvp); renderAll();
       });
 
-      $('#c5b-btn-clear-mvp').addEventListener('click', ()=>{
-        mvp = null;
-        saveMvp(null);
-        renderAll();
-      });
+      $('#c5b-btn-clear-mvp').addEventListener('click', ()=>{ mvp=null; saveMvp(null); renderAll(); });
 
       $('#c5b-btn-reset').addEventListener('click', ()=>{
         if(confirm('¿Seguro que quieres poner a 0 todos los puntos de 5ºB?')){
-          roster = roster.map(a=>({name:a.name, points:0}));
-          mvp = null;
-          save(); saveMvp(null);
+          roster = roster.map(a=>({name:a.name, points:0})); mvp=null; save(); saveMvp(null);
+          setLastReset(Date.now()); // ⬅️
           renderAll();
         }
       });
 
-      // Tabla: delegación de eventos
       $('#c5b-tbody').addEventListener('click', (e)=>{
-        const btn = e.target.closest('button');
-        if(!btn) return;
+        const btn = e.target.closest('button'); if(!btn) return;
         const idx = parseInt(btn.getAttribute('data-index'),10);
-        const action = btn.getAttribute('data-action');
-        if(Number.isNaN(idx)) return;
-
+        const action = btn.getAttribute('data-action'); if(Number.isNaN(idx)) return;
         if(action==='plus'){ roster[idx].points = Math.max(0, roster[idx].points + 1); }
         if(action==='minus'){ roster[idx].points = Math.max(0, roster[idx].points - 1); }
         if(action==='star'){ mvp = { name: roster[idx].name, points: roster[idx].points }; saveMvp(mvp); }
-        save();
-        renderAll();
+        save(); renderAll();
       });
 
-      // Editor lista
       const editor = $('#c5b-editor');
-      $('#c5b-btn-edit').addEventListener('click', ()=>{
-        editor.classList.toggle('hidden');
-        renderEditor();
-      });
-      $('#c5b-editor-cancel').addEventListener('click', ()=>{
-        editor.classList.add('hidden');
-      });
+      $('#c5b-btn-edit').addEventListener('click', ()=>{ editor.classList.toggle('hidden'); renderEditor(); });
+      $('#c5b-editor-cancel').addEventListener('click', ()=> editor.classList.add('hidden'));
       $('#c5b-editor-apply').addEventListener('click', ()=>{
-        const lines = $('#c5b-textarea').value.split('\\n').map(s=>s.trim()).filter(Boolean);
+        const lines = $('#c5b-textarea').value.split('\n').map(s=>s.trim()).filter(Boolean);
         if(!lines.length) return;
-        roster = lines.map(n=>({name:n, points:0}));
-        mvp = null;
-        save(); saveMvp(null);
-        editor.classList.add('hidden');
-        renderAll();
+        roster = lines.map(n=>({name:n, points:0})); mvp=null; save(); saveMvp(null);
+        editor.classList.add('hidden'); renderAll();
       });
 
-      // Render SOLO cuando la sección esté visible
-      const obs = new MutationObserver(()=>{
-        if(!sec.classList.contains('hidden')) renderAll();
-      });
+      const obs = new MutationObserver(()=>{ if(!sec.classList.contains('hidden')) renderAll(); });
       obs.observe(sec, { attributes:true });
-
       if(!sec.classList.contains('hidden')) renderAll();
     })();
   </script>
@@ -907,6 +908,27 @@ function renderProgress(){
       </div>
     </div>
 
+    <!-- Semana en curso (L–V) -->
+    <div id="c6a-week" class="bg-white shadow rounded-xl p-4">
+      <div class="flex items-center justify-between">
+        <p class="font-semibold">Semana en curso (L–V)</p>
+        <p id="c6a-week-label" class="text-sm text-gray-500">0%</p>
+      </div>
+      <div class="h-3 bg-gray-100 rounded-full mt-2 overflow-hidden">
+        <div id="c6a-week-bar" class="h-3 bg-gradient-to-r from-violet-500 to-fuchsia-500" style="width:0%"></div>
+      </div>
+      <div class="flex gap-1 mt-2" id="c6a-week-days">
+        <span data-i="0" class="px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600">L</span>
+        <span data-i="1" class="px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600">M</span>
+        <span data-i="2" class="px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600">X</span>
+        <span data-i="3" class="px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600">J</span>
+        <span data-i="4" class="px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600">V</span>
+      </div>
+      <div id="c6a-reset-alert" class="hidden mt-3 px-3 py-2 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 text-sm">
+        Hace <span id="c6a-days-since">—</span> días del último reinicio. Considera usar “Reset puntos”.
+      </div>
+    </div>
+
     <!-- Tabla de clasificación -->
     <div class="overflow-x-auto bg-white shadow rounded-xl">
       <table class="min-w-full divide-y divide-gray-200">
@@ -940,6 +962,7 @@ function renderProgress(){
       const sec = document.getElementById('6a');
       const KEY = 'fantasy_6a_roster_v1';
       const KEY_MVP = 'fantasy_6a_mvp_v1';
+      const KEY_RESET = 'fantasy_6a_last_reset_v1';
 
       const defaultNames = [
         'Andrés','Camila','Guille','Marta','Óscar','Teresa','Iker','Ariadna','Raúl','Nerea',
@@ -949,34 +972,62 @@ function renderProgress(){
 
       const $ = (sel)=>sec.querySelector(sel);
 
-      function load(){
-        try{
-          const raw = localStorage.getItem(KEY);
-          if(raw) return JSON.parse(raw);
-        }catch(e){}
-        return defaultNames.map(n=>({name:n, points:0}));
-      }
+      function load(){ try{ const raw = localStorage.getItem(KEY); if(raw) return JSON.parse(raw);}catch(e){} return defaultNames.map(n=>({name:n, points:0})); }
       function save(){ localStorage.setItem(KEY, JSON.stringify(roster)); }
+      function loadMvp(){ try{ const raw = localStorage.getItem(KEY_MVP); if(raw) return JSON.parse(raw);}catch(e){} return null; }
+      function saveMvp(mvp){ if(mvp) localStorage.setItem(KEY_MVP, JSON.stringify(mvp)); else localStorage.removeItem(KEY_MVP); }
 
-      function loadMvp(){
-        try{
-          const raw = localStorage.getItem(KEY_MVP);
-          if(raw) return JSON.parse(raw); // {name, points}
-        }catch(e){}
-        return null;
+      // ---- Progreso semanal / reset ----
+      function getLastReset(){ const v = localStorage.getItem(KEY_RESET); return v? parseInt(v,10): null; }
+      function setLastReset(ts){ localStorage.setItem(KEY_RESET, String(ts)); }
+      function getWeekBounds(){
+        const now = new Date();
+        const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const mondayOffset = (d.getDay()+6)%7;
+        const start = new Date(d); start.setDate(d.getDate()-mondayOffset); start.setHours(0,0,0,0);
+        const end   = new Date(start); end.setDate(start.getDate()+4); end.setHours(23,59,59,999);
+        return { now, start, end };
       }
-      function saveMvp(mvp){ 
-        if(mvp) localStorage.setItem(KEY_MVP, JSON.stringify(mvp));
-        else localStorage.removeItem(KEY_MVP);
+      function renderProgress(){
+        const bar   = $('#c6a-week-bar');
+        const label = $('#c6a-week-label');
+        const chips = $('#c6a-week-days')?.querySelectorAll('span') || [];
+        const alert = $('#c6a-reset-alert');
+        const daysSpan = $('#c6a-days-since');
+
+        const { now, start, end } = getWeekBounds();
+        const total = Math.max(1, end - start);
+        let pct = Math.max(0, Math.min(1, (now - start)/total));
+        if(now > end) pct = 1;
+        if(bar) bar.style.width = (pct*100).toFixed(0)+'%';
+        if(label) label.textContent = (pct*100).toFixed(0)+'%';
+
+        const dayIdx = Math.min(4, (now.getDay()+6)%7);
+        chips.forEach(el=>{
+          const i = parseInt(el.getAttribute('data-i'),10);
+          const active = (now > end) ? true : i<=dayIdx;
+          el.className = active
+            ? 'px-2 py-0.5 text-xs rounded bg-emerald-100 text-emerald-700'
+            : 'px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600';
+        });
+
+        const last = getLastReset();
+        if(!alert) return;
+        if(last){
+          const days = Math.floor((Date.now()-last)/(1000*60*60*24));
+          if(daysSpan) daysSpan.textContent = String(days);
+          alert.classList.toggle('hidden', days<7);
+        }else{
+          alert.classList.remove('hidden');
+          alert.innerHTML = 'Aún no se ha reiniciado esta clase. Usa <strong>“Reset puntos”</strong> al final de la semana.';
+        }
       }
+      // -----------------------------------
 
       let roster = load();
       let mvp = loadMvp();
 
-      function sortRoster(){
-        roster.sort((a,b)=> b.points - a.points || a.name.localeCompare(b.name));
-      }
-
+      function sortRoster(){ roster.sort((a,b)=> b.points - a.points || a.name.localeCompare(b.name)); }
       function stats(){
         const count = roster.length;
         const total = roster.reduce((s,a)=>s+a.points,0);
@@ -987,7 +1038,6 @@ function renderProgress(){
         $('#c6a-metric-avg').textContent = avg;
         $('#c6a-metric-leader').textContent = leader;
       }
-
       function renderPodium(){
         const p1 = roster[0], p2 = roster[1], p3 = roster[2];
         $('#c6a-p1').textContent = p1? p1.name : '—';
@@ -997,31 +1047,16 @@ function renderProgress(){
         $('#c6a-p3').textContent = p3? p3.name : '—';
         $('#c6a-p3p').textContent = p3? p3.points+' pts':'— pts';
       }
-
       function renderMvp(){
-        if(mvp){
-          $('#c6a-mvp-name').textContent = mvp.name;
-          $('#c6a-mvp-points').textContent = mvp.points+' pts';
-        }else{
-          $('#c6a-mvp-name').textContent = 'Aún sin elegir';
-          $('#c6a-mvp-points').textContent = '— pts';
-        }
+        if(mvp){ $('#c6a-mvp-name').textContent = mvp.name; $('#c6a-mvp-points').textContent = mvp.points+' pts'; }
+        else { $('#c6a-mvp-name').textContent = 'Aún sin elegir'; $('#c6a-mvp-points').textContent = '— pts'; }
       }
-
       function renderSelects(){
-        const sel = $('#c6a-quick-student');
-        sel.innerHTML = '';
-        roster.forEach((a,idx)=>{
-          const opt = document.createElement('option');
-          opt.value = idx;
-          opt.textContent = a.name;
-          sel.appendChild(opt);
-        });
+        const sel = $('#c6a-quick-student'); sel.innerHTML = '';
+        roster.forEach((a,idx)=>{ const opt=document.createElement('option'); opt.value=idx; opt.textContent=a.name; sel.appendChild(opt); });
       }
-
       function renderTable(){
-        const tbody = $('#c6a-tbody');
-        tbody.innerHTML = '';
+        const tbody = $('#c6a-tbody'); tbody.innerHTML='';
         roster.forEach((a,idx)=>{
           const tr = document.createElement('tr');
           tr.className = (mvp && mvp.name===a.name) ? 'bg-amber-50' : '';
@@ -1033,24 +1068,14 @@ function renderProgress(){
               <button class="btn-primary text-xs px-2 py-1 rounded" data-action="plus" data-index="${idx}">+1</button>
               <button class="bg-red-600 text-white text-xs px-2 py-1 rounded" data-action="minus" data-index="${idx}">-1</button>
               <button class="bg-amber-500 text-white text-xs px-2 py-1 rounded" data-action="star" data-index="${idx}">⭐ MVP</button>
-            </td>
-          `;
+            </td>`;
           tbody.appendChild(tr);
         });
       }
-
-      function renderEditor(){
-        const ta = $('#c6a-textarea');
-        ta.value = roster.map(a=>a.name).join('\n');
-      }
+      function renderEditor(){ const ta = $('#c6a-textarea'); ta.value = roster.map(a=>a.name).join('\n'); }
 
       function renderAll(){
-        sortRoster();
-        stats();
-        renderPodium();
-        renderMvp();
-        renderSelects();
-        renderTable();
+        sortRoster(); stats(); renderPodium(); renderMvp(); renderSelects(); renderTable(); renderProgress(); // ⬅️
       }
 
       // Eventos
@@ -1059,79 +1084,52 @@ function renderProgress(){
         const delta = parseInt($('#c6a-quick-reason').value,10);
         if(isNaN(idx)||isNaN(delta)) return;
         roster[idx].points = Math.max(0, roster[idx].points + delta);
-        save();
-        renderAll();
+        save(); renderAll();
       });
 
       $('#c6a-btn-mvp').addEventListener('click', ()=>{
         if(!roster.length) return;
         const idx = Math.floor(Math.random()*roster.length);
-        mvp = { name: roster[idx].name, points: roster[idx].points };
-        saveMvp(mvp);
-        renderAll();
+        mvp = { name: roster[idx].name, points: roster[idx].points }; saveMvp(mvp); renderAll();
       });
 
-      $('#c6a-btn-clear-mvp').addEventListener('click', ()=>{
-        mvp = null;
-        saveMvp(null);
-        renderAll();
-      });
+      $('#c6a-btn-clear-mvp').addEventListener('click', ()=>{ mvp=null; saveMvp(null); renderAll(); });
 
       $('#c6a-btn-reset').addEventListener('click', ()=>{
         if(confirm('¿Seguro que quieres poner a 0 todos los puntos de 6ºA?')){
-          roster = roster.map(a=>({name:a.name, points:0}));
-          mvp = null;
-          save(); saveMvp(null);
+          roster = roster.map(a=>({name:a.name, points:0})); mvp=null; save(); saveMvp(null);
+          setLastReset(Date.now()); // ⬅️
           renderAll();
         }
       });
 
-      // Tabla: delegación de eventos
       $('#c6a-tbody').addEventListener('click', (e)=>{
-        const btn = e.target.closest('button');
-        if(!btn) return;
+        const btn = e.target.closest('button'); if(!btn) return;
         const idx = parseInt(btn.getAttribute('data-index'),10);
-        const action = btn.getAttribute('data-action');
-        if(Number.isNaN(idx)) return;
-
+        const action = btn.getAttribute('data-action'); if(Number.isNaN(idx)) return;
         if(action==='plus'){ roster[idx].points = Math.max(0, roster[idx].points + 1); }
         if(action==='minus'){ roster[idx].points = Math.max(0, roster[idx].points - 1); }
         if(action==='star'){ mvp = { name: roster[idx].name, points: roster[idx].points }; saveMvp(mvp); }
-        save();
-        renderAll();
+        save(); renderAll();
       });
 
-      // Editor lista
       const editor = $('#c6a-editor');
-      $('#c6a-btn-edit').addEventListener('click', ()=>{
-        editor.classList.toggle('hidden');
-        renderEditor();
-      });
-      $('#c6a-editor-cancel').addEventListener('click', ()=>{
-        editor.classList.add('hidden');
-      });
+      $('#c6a-btn-edit').addEventListener('click', ()=>{ editor.classList.toggle('hidden'); renderEditor(); });
+      $('#c6a-editor-cancel').addEventListener('click', ()=> editor.classList.add('hidden'));
       $('#c6a-editor-apply').addEventListener('click', ()=>{
         const lines = $('#c6a-textarea').value.split('\n').map(s=>s.trim()).filter(Boolean);
         if(!lines.length) return;
-        roster = lines.map(n=>({name:n, points:0}));
-        mvp = null;
-        save(); saveMvp(null);
-        editor.classList.add('hidden');
-        renderAll();
+        roster = lines.map(n=>({name:n, points:0})); mvp=null; save(); saveMvp(null);
+        editor.classList.add('hidden'); renderAll();
       });
 
-      // Render SOLO cuando la sección esté visible
-      const obs = new MutationObserver(()=>{
-        if(!sec.classList.contains('hidden')) renderAll();
-      });
+      const obs = new MutationObserver(()=>{ if(!sec.classList.contains('hidden')) renderAll(); });
       obs.observe(sec, { attributes:true });
-
       if(!sec.classList.contains('hidden')) renderAll();
     })();
   </script>
 </section>
-</section>
-      <section id="6b" class="hidden">
+     <section id="6b" class="hidden">
   <!-- 6ºB: Panel de clase (aislado) -->
   <div class="flex flex-col gap-4">
     <!-- Encabezado + Acciones -->
@@ -1214,6 +1212,27 @@ function renderProgress(){
       </div>
     </div>
 
+    <!-- Semana en curso (L–V) -->
+    <div id="c6b-week" class="bg-white shadow rounded-xl p-4">
+      <div class="flex items-center justify-between">
+        <p class="font-semibold">Semana en curso (L–V)</p>
+        <p id="c6b-week-label" class="text-sm text-gray-500">0%</p>
+      </div>
+      <div class="h-3 bg-gray-100 rounded-full mt-2 overflow-hidden">
+        <div id="c6b-week-bar" class="h-3 bg-gradient-to-r from-sky-500 to-blue-500" style="width:0%"></div>
+      </div>
+      <div class="flex gap-1 mt-2" id="c6b-week-days">
+        <span data-i="0" class="px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600">L</span>
+        <span data-i="1" class="px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600">M</span>
+        <span data-i="2" class="px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600">X</span>
+        <span data-i="3" class="px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600">J</span>
+        <span data-i="4" class="px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600">V</span>
+      </div>
+      <div id="c6b-reset-alert" class="hidden mt-3 px-3 py-2 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 text-sm">
+        Hace <span id="c6b-days-since">—</span> días del último reinicio. Considera usar “Reset puntos”.
+      </div>
+    </div>
+
     <!-- Tabla de clasificación -->
     <div class="overflow-x-auto bg-white shadow rounded-xl">
       <table class="min-w-full divide-y divide-gray-200">
@@ -1247,6 +1266,7 @@ function renderProgress(){
       const sec = document.getElementById('6b');
       const KEY = 'fantasy_6b_roster_v1';
       const KEY_MVP = 'fantasy_6b_mvp_v1';
+      const KEY_RESET = 'fantasy_6b_last_reset_v1';
 
       const defaultNames = [
         'Aarón','Blanca','Carlos','Diana','Edgar','Fiona','Germán','Helena','Ismael','Jana',
@@ -1256,34 +1276,62 @@ function renderProgress(){
 
       const $ = (sel)=>sec.querySelector(sel);
 
-      function load(){
-        try{
-          const raw = localStorage.getItem(KEY);
-          if(raw) return JSON.parse(raw);
-        }catch(e){}
-        return defaultNames.map(n=>({name:n, points:0}));
-      }
+      function load(){ try{ const raw = localStorage.getItem(KEY); if(raw) return JSON.parse(raw);}catch(e){} return defaultNames.map(n=>({name:n, points:0})); }
       function save(){ localStorage.setItem(KEY, JSON.stringify(roster)); }
+      function loadMvp(){ try{ const raw = localStorage.getItem(KEY_MVP); if(raw) return JSON.parse(raw);}catch(e){} return null; }
+      function saveMvp(mvp){ if(mvp) localStorage.setItem(KEY_MVP, JSON.stringify(mvp)); else localStorage.removeItem(KEY_MVP); }
 
-      function loadMvp(){
-        try{
-          const raw = localStorage.getItem(KEY_MVP);
-          if(raw) return JSON.parse(raw); // {name, points}
-        }catch(e){}
-        return null;
+      // ---- Progreso semanal / reset ----
+      function getLastReset(){ const v = localStorage.getItem(KEY_RESET); return v? parseInt(v,10): null; }
+      function setLastReset(ts){ localStorage.setItem(KEY_RESET, String(ts)); }
+      function getWeekBounds(){
+        const now = new Date();
+        const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const mondayOffset = (d.getDay()+6)%7;
+        const start = new Date(d); start.setDate(d.getDate()-mondayOffset); start.setHours(0,0,0,0);
+        const end   = new Date(start); end.setDate(start.getDate()+4); end.setHours(23,59,59,999);
+        return { now, start, end };
       }
-      function saveMvp(mvp){ 
-        if(mvp) localStorage.setItem(KEY_MVP, JSON.stringify(mvp));
-        else localStorage.removeItem(KEY_MVP);
+      function renderProgress(){
+        const bar   = $('#c6b-week-bar');
+        const label = $('#c6b-week-label');
+        const chips = $('#c6b-week-days')?.querySelectorAll('span') || [];
+        const alert = $('#c6b-reset-alert');
+        const daysSpan = $('#c6b-days-since');
+
+        const { now, start, end } = getWeekBounds();
+        const total = Math.max(1, end - start);
+        let pct = Math.max(0, Math.min(1, (now - start)/total));
+        if(now > end) pct = 1;
+        if(bar) bar.style.width = (pct*100).toFixed(0)+'%';
+        if(label) label.textContent = (pct*100).toFixed(0)+'%';
+
+        const dayIdx = Math.min(4, (now.getDay()+6)%7);
+        chips.forEach(el=>{
+          const i = parseInt(el.getAttribute('data-i'),10);
+          const active = (now > end) ? true : i<=dayIdx;
+          el.className = active
+            ? 'px-2 py-0.5 text-xs rounded bg-emerald-100 text-emerald-700'
+            : 'px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600';
+        });
+
+        const last = getLastReset();
+        if(!alert) return;
+        if(last){
+          const days = Math.floor((Date.now()-last)/(1000*60*60*24));
+          if(daysSpan) daysSpan.textContent = String(days);
+          alert.classList.toggle('hidden', days<7);
+        }else{
+          alert.classList.remove('hidden');
+          alert.innerHTML = 'Aún no se ha reiniciado esta clase. Usa <strong>“Reset puntos”</strong> al final de la semana.';
+        }
       }
+      // -----------------------------------
 
       let roster = load();
       let mvp = loadMvp();
 
-      function sortRoster(){
-        roster.sort((a,b)=> b.points - a.points || a.name.localeCompare(b.name));
-      }
-
+      function sortRoster(){ roster.sort((a,b)=> b.points - a.points || a.name.localeCompare(b.name)); }
       function stats(){
         const count = roster.length;
         const total = roster.reduce((s,a)=>s+a.points,0);
@@ -1294,7 +1342,6 @@ function renderProgress(){
         $('#c6b-metric-avg').textContent = avg;
         $('#c6b-metric-leader').textContent = leader;
       }
-
       function renderPodium(){
         const p1 = roster[0], p2 = roster[1], p3 = roster[2];
         $('#c6b-p1').textContent = p1? p1.name : '—';
@@ -1304,31 +1351,16 @@ function renderProgress(){
         $('#c6b-p3').textContent = p3? p3.name : '—';
         $('#c6b-p3p').textContent = p3? p3.points+' pts':'— pts';
       }
-
       function renderMvp(){
-        if(mvp){
-          $('#c6b-mvp-name').textContent = mvp.name;
-          $('#c6b-mvp-points').textContent = mvp.points+' pts';
-        }else{
-          $('#c6b-mvp-name').textContent = 'Aún sin elegir';
-          $('#c6b-mvp-points').textContent = '— pts';
-        }
+        if(mvp){ $('#c6b-mvp-name').textContent = mvp.name; $('#c6b-mvp-points').textContent = mvp.points+' pts'; }
+        else { $('#c6b-mvp-name').textContent = 'Aún sin elegir'; $('#c6b-mvp-points').textContent = '— pts'; }
       }
-
       function renderSelects(){
-        const sel = $('#c6b-quick-student');
-        sel.innerHTML = '';
-        roster.forEach((a,idx)=>{
-          const opt = document.createElement('option');
-          opt.value = idx;
-          opt.textContent = a.name;
-          sel.appendChild(opt);
-        });
+        const sel = $('#c6b-quick-student'); sel.innerHTML='';
+        roster.forEach((a,idx)=>{ const opt=document.createElement('option'); opt.value=idx; opt.textContent=a.name; sel.appendChild(opt); });
       }
-
       function renderTable(){
-        const tbody = $('#c6b-tbody');
-        tbody.innerHTML = '';
+        const tbody = $('#c6b-tbody'); tbody.innerHTML='';
         roster.forEach((a,idx)=>{
           const tr = document.createElement('tr');
           tr.className = (mvp && mvp.name===a.name) ? 'bg-amber-50' : '';
@@ -1340,24 +1372,14 @@ function renderProgress(){
               <button class="btn-primary text-xs px-2 py-1 rounded" data-action="plus" data-index="${idx}">+1</button>
               <button class="bg-red-600 text-white text-xs px-2 py-1 rounded" data-action="minus" data-index="${idx}">-1</button>
               <button class="bg-amber-500 text-white text-xs px-2 py-1 rounded" data-action="star" data-index="${idx}">⭐ MVP</button>
-            </td>
-          `;
+            </td>`;
           tbody.appendChild(tr);
         });
       }
-
-      function renderEditor(){
-        const ta = $('#c6b-textarea');
-        ta.value = roster.map(a=>a.name).join('\n');
-      }
+      function renderEditor(){ const ta = $('#c6b-textarea'); ta.value = roster.map(a=>a.name).join('\n'); }
 
       function renderAll(){
-        sortRoster();
-        stats();
-        renderPodium();
-        renderMvp();
-        renderSelects();
-        renderTable();
+        sortRoster(); stats(); renderPodium(); renderMvp(); renderSelects(); renderTable(); renderProgress(); // ⬅️
       }
 
       // Eventos
@@ -1366,162 +1388,48 @@ function renderProgress(){
         const delta = parseInt($('#c6b-quick-reason').value,10);
         if(isNaN(idx)||isNaN(delta)) return;
         roster[idx].points = Math.max(0, roster[idx].points + delta);
-        save();
-        renderAll();
+        save(); renderAll();
       });
 
       $('#c6b-btn-mvp').addEventListener('click', ()=>{
         if(!roster.length) return;
         const idx = Math.floor(Math.random()*roster.length);
-        mvp = { name: roster[idx].name, points: roster[idx].points };
-        saveMvp(mvp);
-        renderAll();
+        mvp = { name: roster[idx].name, points: roster[idx].points }; saveMvp(mvp); renderAll();
       });
 
-      $('#c6b-btn-clear-mvp').addEventListener('click', ()=>{
-        mvp = null;
-        saveMvp(null);
-        renderAll();
-      });
+      $('#c6b-btn-clear-mvp').addEventListener('click', ()=>{ mvp=null; saveMvp(null); renderAll(); });
 
       $('#c6b-btn-reset').addEventListener('click', ()=>{
         if(confirm('¿Seguro que quieres poner a 0 todos los puntos de 6ºB?')){
-          roster = roster.map(a=>({name:a.name, points:0}));
-          mvp = null;
-          save(); saveMvp(null);
+          roster = roster.map(a=>({name:a.name, points:0})); mvp=null; save(); saveMvp(null);
+          setLastReset(Date.now()); // ⬅️
           renderAll();
         }
       });
 
-      // Tabla: delegación de eventos
       $('#c6b-tbody').addEventListener('click', (e)=>{
-        const btn = e.target.closest('button');
-        if(!btn) return;
+        const btn = e.target.closest('button'); if(!btn) return;
         const idx = parseInt(btn.getAttribute('data-index'),10);
-        const action = btn.getAttribute('data-action');
-        if(Number.isNaN(idx)) return;
-
+        const action = btn.getAttribute('data-action'); if(Number.isNaN(idx)) return;
         if(action==='plus'){ roster[idx].points = Math.max(0, roster[idx].points + 1); }
         if(action==='minus'){ roster[idx].points = Math.max(0, roster[idx].points - 1); }
         if(action==='star'){ mvp = { name: roster[idx].name, points: roster[idx].points }; saveMvp(mvp); }
-        save();
-        renderAll();
+        save(); renderAll();
       });
 
-      // Editor lista
       const editor = $('#c6b-editor');
-      $('#c6b-btn-edit').addEventListener('click', ()=>{
-        editor.classList.toggle('hidden');
-        renderEditor();
-      });
-      $('#c6b-editor-cancel').addEventListener('click', ()=>{
-        editor.classList.add('hidden');
-      });
+      $('#c6b-btn-edit').addEventListener('click', ()=>{ editor.classList.toggle('hidden'); renderEditor(); });
+      $('#c6b-editor-cancel').addEventListener('click', ()=> editor.classList.add('hidden'));
       $('#c6b-editor-apply').addEventListener('click', ()=>{
         const lines = $('#c6b-textarea').value.split('\n').map(s=>s.trim()).filter(Boolean);
         if(!lines.length) return;
-        roster = lines.map(n=>({name:n, points:0}));
-        mvp = null;
-        save(); saveMvp(null);
-        editor.classList.add('hidden');
-        renderAll();
+        roster = lines.map(n=>({name:n, points:0})); mvp=null; save(); saveMvp(null);
+        editor.classList.add('hidden'); renderAll();
       });
 
-      // Render SOLO cuando la sección esté visible
-      const obs = new MutationObserver(()=>{
-        if(!sec.classList.contains('hidden')) renderAll();
-      });
+      const obs = new MutationObserver(()=>{ if(!sec.classList.contains('hidden')) renderAll(); });
       obs.observe(sec, { attributes:true });
-
       if(!sec.classList.contains('hidden')) renderAll();
-    })();
-  </script>
-</section>
-</section>
-     <section id="objetivos" class="hidden">
-  <style>
-    /* Estilos locales SOLO para #objetivos */
-    #objetivos .obj-reveal { 
-      opacity: 0; transform: translateY(12px) scale(.98);
-      transition: all .55s cubic-bezier(.22,.8,.3,1);
-    }
-    #objetivos .obj-show { opacity: 1; transform: translateY(0) scale(1); }
-    #objetivos .card {
-      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-    }
-    #objetivos .ring-grad {
-  /* Contraste mejorado (fondo claro real) */
-  background:
-    radial-gradient(1000px 120px at 10% -20%, rgba(99,102,241,.18), transparent 60%),
-    radial-gradient(900px 140px at 90% -30%, rgba(37,99,235,.22), transparent 60%),
-    linear-gradient(180deg, #f5f7ff 0%, #eef2ff 100%);
-  box-shadow: 0 4px 20px rgba(2,6,23,.06);
-}
-    #objetivos .confetti {
-      position: relative; overflow: hidden;
-    }
-    #objetivos .confetti::after {
-      content: "";
-      position: absolute; inset: -2px;
-      background:
-        radial-gradient(6px 6px at 12% 18%, rgba(99,102,241,.25) 40%, transparent 41%) repeat,
-        radial-gradient(5px 5px at 78% 22%, rgba(16,185,129,.25) 40%, transparent 41%) repeat,
-        radial-gradient(5px 5px at 22% 76%, rgba(244,114,182,.25) 40%, transparent 41%) repeat,
-        radial-gradient(6px 6px at 84% 74%, rgba(59,130,246,.25) 40%, transparent 41%) repeat;
-      background-size: 160px 160px;
-      pointer-events: none; opacity: .7;
-    }
-  </style>
-
-  <!-- Cabecera decorada -->
- <!-- Cabecera decorada (contraste mejorado) -->
-<div class="ring-grad rounded-2xl p-6 md:p-8 mb-6 text-gray-900 relative overflow-hidden border border-indigo-100">
-  <div class="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-indigo-500/10 blur-2xl"></div>
-  <h3 class="text-3xl md:text-4xl font-extrabold tracking-tight obj-reveal text-slate-900">Objetivos</h3>
-  <p class="mt-1 obj-reveal text-slate-600">La base de la Liga: esfuerzo, compañerismo y constancia.</p>
-</div>
-  <!-- Cuerpo con animaciones de aparición -->
-  <div class="grid gap-6">
-    <div class="card rounded-2xl p-5 shadow obj-reveal confetti">
-      <p class="mb-6">La <strong>Liga Fantasy NSS</strong> es una propuesta de gamificación diseñada para transformar el día a día en clase en una experiencia divertida, motivadora y educativa. A través de un sistema de puntos y recompensas, se reconoce el esfuerzo, la constancia, el comportamiento positivo y la implicación tanto en el colegio como en casa.</p>
-      <p class="mb-6">Cada alumno puede ir sumando puntos a lo largo de la semana por cumplir tareas, participar en clase, ayudar a los compañeros o mostrar una actitud ejemplar. La idea es que entiendan que su trabajo diario y su compromiso tienen valor, y que ese valor se traduce en recompensas simbólicas que fomentan la responsabilidad y el compañerismo.</p>
-      <p class="mb-6">El objetivo no es competir contra los demás, sino superarse a uno mismo y formar parte de un equipo donde todos suman. De este modo, se refuerza el aprendizaje, el esfuerzo personal y el clima positivo en el aula.</p>
-    </div>
-
-    <div class="card rounded-2xl p-5 shadow obj-reveal">
-      <h4 class="text-xl font-bold mb-3 flex items-center gap-2">
-        <span class="inline-flex w-8 h-8 items-center justify-center rounded-full bg-indigo-600 text-white">🎯</span>
-        Sistema de puntuación
-      </h4>
-      <ul class="list-disc pl-5 space-y-1">
-        <li>📖 <strong>Leer un libro extra:</strong> +3 puntos</li>
-        <li>📚 <strong>Entrega de tareas:</strong> +1 punto</li>
-        <li>🙌 <strong>Buena acción o ayuda en clase:</strong> +1 punto</li>
-        <li>❌ <strong>Falta de trabajo:</strong> -1 punto</li>
-        <li>🚫 <strong>Incidencia grave:</strong> -3 puntos</li>
-      </ul>
-
-      <!-- Chips decorativos (no cambian el contenido, solo estética) -->
-      <div class="mt-4 flex flex-wrap gap-2">
-        <span class="px-3 py-1 text-xs rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">Constancia</span>
-        <span class="px-3 py-1 text-xs rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">Trabajo en equipo</span>
-        <span class="px-3 py-1 text-xs rounded-full bg-amber-50 text-amber-700 border border-amber-200">Autonomía</span>
-        <span class="px-3 py-1 text-xs rounded-full bg-pink-50 text-pink-700 border border-pink-200">Actitud positiva</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Script de aparición progresiva SOLO cuando la sección está visible -->
-  <script>
-    (function(){
-      const sec = document.getElementById('objetivos');
-      function reveal(){
-        const items = sec.querySelectorAll('.obj-reveal');
-        items.forEach((el, i)=> setTimeout(()=> el.classList.add('obj-show'), 90*i));
-      }
-      const mo = new MutationObserver(()=>{ if(!sec.classList.contains('hidden')) reveal(); });
-      mo.observe(sec, { attributes:true });
-      if(!sec.classList.contains('hidden')) reveal();
     })();
   </script>
 </section>
