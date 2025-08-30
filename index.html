@@ -168,7 +168,7 @@
 
     <!-- Contenido -->
     <main class="flex-1 max-w-6xl mx-auto w-full p-4">
-    <section id="5a" class="hidden">
+   <section id="5a" class="hidden">
   <!-- 5ºA: Panel de clase (autosuficiente y aislado) -->
   <div class="flex flex-col gap-4">
     <!-- Encabezado + Acciones -->
@@ -251,16 +251,6 @@
       </div>
     </div>
 
-    <!-- Leyenda de insignias -->
-    <div class="bg-white shadow rounded-xl p-4">
-      <p class="text-sm font-semibold mb-2">Insignias disponibles</p>
-      <div class="flex flex-wrap gap-2">
-        <span class="badge-chip" data-type="constancia">⭐ Constancia <span class="count">+1</span></span>
-        <span class="badge-chip" data-type="companierismo">🤝 Compañerismo <span class="count">+1</span></span>
-        <span class="badge-chip" data-type="lectura">📖 Lectura <span class="count">+1</span></span>
-      </div>
-    </div>
-
     <!-- Semana en curso (L–V) -->
     <div id="c5a-week" class="bg-white shadow rounded-xl p-4">
       <div class="flex items-center justify-between">
@@ -282,7 +272,17 @@
       </div>
     </div>
 
-    <!-- Tabla de clasificación (con columna Insignias) -->
+    <!-- Leyenda de insignias -->
+    <div class="bg-white shadow rounded-xl p-4">
+      <p class="text-sm font-semibold mb-2">Insignias disponibles</p>
+      <div class="flex flex-wrap gap-2">
+        <span class="badge-chip" data-type="constancia">⭐ Constancia <span class="count">+1</span></span>
+        <span class="badge-chip" data-type="companierismo">🤝 Compañerismo <span class="count">+1</span></span>
+        <span class="badge-chip" data-type="lectura">📖 Lectura <span class="count">+1</span></span>
+      </div>
+    </div>
+
+    <!-- Tabla de clasificación -->
     <div class="overflow-x-auto bg-white shadow rounded-xl">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
@@ -317,7 +317,6 @@
       const KEY = 'fantasy_5a_roster_v1';
       const KEY_MVP = 'fantasy_5a_mvp_v1';
       const KEY_RESET = 'fantasy_5a_last_reset_v1';
-      const POP_ID = 'c5a-badge-pop';
 
       const defaultNames = [
         'Álvaro','Lucía','Martín','Sofía','Leo','Daniela','Mateo','Emma','Hugo','Valeria',
@@ -327,18 +326,18 @@
 
       const $ = (sel)=>sec.querySelector(sel);
 
-      function load(){ try{ const raw = localStorage.getItem(KEY); if(raw) return JSON.parse(raw);}catch(e){} return defaultNames.map(n=>({name:n, points:0, badges:[]})); }
+      function load(){ try{ const raw = localStorage.getItem(KEY); if(raw) return JSON.parse(raw);}catch(e){} return defaultNames.map(n=>({name:n, points:0})); }
       function save(){ localStorage.setItem(KEY, JSON.stringify(roster)); }
       function loadMvp(){ try{ const raw = localStorage.getItem(KEY_MVP); if(raw) return JSON.parse(raw);}catch(e){} return null; }
       function saveMvp(mvp){ if(mvp) localStorage.setItem(KEY_MVP, JSON.stringify(mvp)); else localStorage.removeItem(KEY_MVP); }
 
-      // ---- Progreso semanal / reset ----
+      /* ---------- Progreso semanal / reset ---------- */
       function getLastReset(){ const v = localStorage.getItem(KEY_RESET); return v? parseInt(v,10): null; }
       function setLastReset(ts){ localStorage.setItem(KEY_RESET, String(ts)); }
       function getWeekBounds(){
         const now = new Date();
         const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const mondayOffset = (d.getDay()+6)%7; // L=0
+        const mondayOffset = (d.getDay()+6)%7;
         const start = new Date(d); start.setDate(d.getDate()-mondayOffset); start.setHours(0,0,0,0);
         const end   = new Date(start); end.setDate(start.getDate()+4); end.setHours(23,59,59,999);
         return { now, start, end };
@@ -377,32 +376,35 @@
           alert.innerHTML = 'Aún no se ha reiniciado esta clase. Usa <strong>“Reset puntos”</strong> al final de la semana.';
         }
       }
-      // -----------------------------------
+      /* --------------------------------------------- */
 
-      let roster = load();
-      let mvp = loadMvp();
-
-      function ensureBadges(){ roster.forEach(a=>{ if(!Array.isArray(a.badges)) a.badges=[]; }); }
-      ensureBadges();
-
+      /* ---------- Insignias / Badges ---------- */
+      function ensureBadges(){ roster.forEach(a=>{ if(!Array.isArray(a.badges)) a.badges = []; }); }
       const BADGE_TYPES = [
         { key:'constancia',    icon:'⭐', label:'Constancia' },
         { key:'companierismo', icon:'🤝', label:'Compañerismo' },
         { key:'lectura',       icon:'📖', label:'Lectura' },
       ];
-      function groupBadges(arr){ const map={constancia:0,companierismo:0,lectura:0}; (arr||[]).forEach(k=>{ if(map[k]!=null) map[k]++; }); return map; }
+      function groupBadges(arr){
+        const map = { constancia:0, companierismo:0, lectura:0 };
+        if(Array.isArray(arr)) arr.forEach(k=>{ if(map[k]!==undefined) map[k]++; });
+        return map;
+      }
       function badgesHTML(a){
-        const m = groupBadges(a.badges);
-        const parts=[];
-        BADGE_TYPES.forEach(t=>{ if(m[t.key]>0) parts.push(`<span class="badge-chip" data-type="${t.key}">${t.icon} ${t.label} <span class="count">x${m[t.key]}</span></span>`); });
+        const map = groupBadges(a.badges || []);
+        const parts = [];
+        BADGE_TYPES.forEach(t=>{
+          if(map[t.key]>0){
+            parts.push(`<span class="badge-chip" data-type="${t.key}">${t.icon} ${t.label} <span class="count">x${map[t.key]}</span></span>`);
+          }
+        });
         return parts.join(' ');
       }
-
       function openBadgePicker(anchor, idx){
         closeBadgePicker();
         const r = anchor.getBoundingClientRect();
         const pop = document.createElement('div');
-        pop.id = POP_ID;
+        pop.id = 'c5a-badge-pop';
         pop.className = 'fixed z-40 bg-white shadow-xl border border-gray-200 rounded-xl p-2';
         pop.style.left = (r.left + window.scrollX) + 'px';
         pop.style.top  = (r.bottom + window.scrollY + 6) + 'px';
@@ -411,23 +413,35 @@
           const b = document.createElement('button');
           b.className = 'px-3 py-2 rounded hover:bg-gray-100 flex items-center gap-2 w-full text-sm';
           b.innerHTML = `<span>${t.icon}</span><span>${t.label}</span>`;
-          b.addEventListener('click', ()=>{ roster[idx].badges.push(t.key); save(); renderAll(); closeBadgePicker(); });
+          b.addEventListener('click', ()=>{ addBadge(idx, t.key); closeBadgePicker(); });
           pop.appendChild(b);
         });
 
         const hr = document.createElement('div'); hr.className='my-1 border-t border-gray-200'; pop.appendChild(hr);
         const clear = document.createElement('button');
         clear.className='px-3 py-2 rounded bg-amber-50 hover:bg-amber-100 text-amber-700 w-full text-sm';
-        clear.textContent='🧹 Quitar todas';
-        clear.addEventListener('click', ()=>{ roster[idx].badges=[]; save(); renderAll(); closeBadgePicker(); });
+        clear.textContent = '🧹 Quitar todas';
+        clear.addEventListener('click', ()=>{
+          roster[idx].badges = [];
+          save(); renderAll(); closeBadgePicker();
+        });
         pop.appendChild(clear);
 
         document.body.appendChild(pop);
-        setTimeout(()=>{ document.addEventListener('mousedown', onDoc, {once:true}); document.addEventListener('keydown', onEsc, {once:true}); },0);
-        function onDoc(e){ if(!pop.contains(e.target)) closeBadgePicker(); }
-        function onEsc(e){ if(e.key==='Escape') closeBadgePicker(); }
+        const closeOnClick = (e)=>{ if(!pop.contains(e.target)) closeBadgePicker(); };
+        const closeOnEsc = (e)=>{ if(e.key==='Escape') closeBadgePicker(); };
+        setTimeout(()=>{
+          document.addEventListener('mousedown', closeOnClick, { once:true });
+          document.addEventListener('keydown', closeOnEsc, { once:true });
+        }, 0);
       }
-      function closeBadgePicker(){ const el=document.getElementById(POP_ID); if(el) el.remove(); }
+      function closeBadgePicker(){ const el = document.getElementById('c5a-badge-pop'); if(el) el.remove(); }
+      function addBadge(idx, key){ ensureBadges(); roster[idx].badges.push(key); save(); renderAll(); }
+      /* --------------------------------------- */
+
+      let roster = load();
+      let mvp = loadMvp();
+      ensureBadges();
 
       function sortRoster(){ roster.sort((a,b)=> b.points - a.points || a.name.localeCompare(b.name)); }
       function stats(){
@@ -454,11 +468,11 @@
         else { $('#c5a-mvp-name').textContent = 'Aún sin elegir'; $('#c5a-mvp-points').textContent = '— pts'; }
       }
       function renderSelects(){
-        const sel = $('#c5a-quick-student'); sel.innerHTML='';
+        const sel = $('#c5a-quick-student'); sel.innerHTML = '';
         roster.forEach((a,idx)=>{ const opt=document.createElement('option'); opt.value=idx; opt.textContent=a.name; sel.appendChild(opt); });
       }
       function renderTable(){
-        const tbody = $('#c5a-tbody'); tbody.innerHTML='';
+        const tbody = $('#c5a-tbody'); tbody.innerHTML = '';
         roster.forEach((a,idx)=>{
           const tr = document.createElement('tr');
           tr.className = (mvp && mvp.name===a.name) ? 'bg-amber-50' : '';
@@ -488,16 +502,20 @@
         roster[idx].points = Math.max(0, roster[idx].points + delta);
         save(); renderAll();
       });
+
       $('#c5a-btn-mvp').addEventListener('click', ()=>{
         if(!roster.length) return;
         const idx = Math.floor(Math.random()*roster.length);
         mvp = { name: roster[idx].name, points: roster[idx].points }; saveMvp(mvp); renderAll();
       });
+
       $('#c5a-btn-clear-mvp').addEventListener('click', ()=>{ mvp=null; saveMvp(null); renderAll(); });
+
       $('#c5a-btn-reset').addEventListener('click', ()=>{
         if(confirm('¿Seguro que quieres poner a 0 todos los puntos de 5ºA?')){
-          roster = roster.map(a=>({name:a.name, points:0, badges:[]})); mvp=null; save(); saveMvp(null);
-          setLastReset(Date.now()); renderAll();
+          roster = roster.map(a=>({name:a.name, points:0})); mvp=null; save(); saveMvp(null);
+          setLastReset(Date.now()); // registra fecha de reset
+          renderAll();
         }
       });
 
@@ -512,31 +530,28 @@
           const row = btn.closest('tr'); row.classList.add('shake'); setTimeout(()=> row.classList.remove('shake'), 220);
         }
         if(action==='star'){ mvp = { name: roster[idx].name, points: roster[idx].points }; saveMvp(mvp); }
-        if(action==='badge'){ openBadgePicker(btn, idx); return; }
+        if(action==='badge'){ openBadgePicker(btn, idx); return; } // no guardes aún
 
         save(); renderAll();
       });
 
-      // Editor lista
       const editor = $('#c5a-editor');
       $('#c5a-btn-edit').addEventListener('click', ()=>{ editor.classList.toggle('hidden'); renderEditor(); });
       $('#c5a-editor-cancel').addEventListener('click', ()=> editor.classList.add('hidden'));
       $('#c5a-editor-apply').addEventListener('click', ()=>{
         const lines = $('#c5a-textarea').value.split('\n').map(s=>s.trim()).filter(Boolean);
         if(!lines.length) return;
-        roster = lines.map(n=>({name:n, points:0, badges:[]})); mvp=null; save(); saveMvp(null);
+        roster = lines.map(n=>({name:n, points:0})); mvp=null; save(); saveMvp(null);
         editor.classList.add('hidden'); renderAll();
       });
 
-      // Render SOLO cuando la sección esté visible
       const obs = new MutationObserver(()=>{ if(!sec.classList.contains('hidden')) renderAll(); });
       obs.observe(sec, { attributes:true });
       if(!sec.classList.contains('hidden')) renderAll();
     })();
   </script>
 </section>
-
-      <section id="5b" class="hidden">
+     <section id="5b" class="hidden">
   <!-- 5ºB: Panel de clase (aislado) -->
   <div class="flex flex-col gap-4">
     <!-- Encabezado + Acciones -->
@@ -619,16 +634,6 @@
       </div>
     </div>
 
-    <!-- Leyenda de insignias -->
-    <div class="bg-white shadow rounded-xl p-4">
-      <p class="text-sm font-semibold mb-2">Insignias disponibles</p>
-      <div class="flex flex-wrap gap-2">
-        <span class="badge-chip" data-type="constancia">⭐ Constancia <span class="count">+1</span></span>
-        <span class="badge-chip" data-type="companierismo">🤝 Compañerismo <span class="count">+1</span></span>
-        <span class="badge-chip" data-type="lectura">📖 Lectura <span class="count">+1</span></span>
-      </div>
-    </div>
-
     <!-- Semana en curso (L–V) -->
     <div id="c5b-week" class="bg-white shadow rounded-xl p-4">
       <div class="flex items-center justify-between">
@@ -650,7 +655,17 @@
       </div>
     </div>
 
-    <!-- Tabla de clasificación (con Insignias) -->
+    <!-- Leyenda de insignias (opcional) -->
+    <div class="bg-white shadow rounded-xl p-4">
+      <p class="text-sm font-semibold mb-2">Insignias disponibles</p>
+      <div class="flex flex-wrap gap-2">
+        <span class="badge-chip" data-type="constancia">⭐ Constancia <span class="count">+1</span></span>
+        <span class="badge-chip" data-type="companierismo">🤝 Compañerismo <span class="count">+1</span></span>
+        <span class="badge-chip" data-type="lectura">📖 Lectura <span class="count">+1</span></span>
+      </div>
+    </div>
+
+    <!-- Tabla de clasificación -->
     <div class="overflow-x-auto bg-white shadow rounded-xl">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
@@ -685,7 +700,6 @@
       const KEY = 'fantasy_5b_roster_v1';
       const KEY_MVP = 'fantasy_5b_mvp_v1';
       const KEY_RESET = 'fantasy_5b_last_reset_v1';
-      const POP_ID = 'c5b-badge-pop';
 
       const defaultNames = [
         'Aarón','Blanca','Carlos','Diana','Edgar','Fiona','Germán','Helena','Ismael','Jana',
@@ -695,12 +709,12 @@
 
       const $ = (sel)=>sec.querySelector(sel);
 
-      function load(){ try{ const raw = localStorage.getItem(KEY); if(raw) return JSON.parse(raw);}catch(e){} return defaultNames.map(n=>({name:n, points:0, badges:[]})); }
+      function load(){ try{ const raw = localStorage.getItem(KEY); if(raw) return JSON.parse(raw); }catch(e){} return defaultNames.map(n=>({name:n, points:0})); }
       function save(){ localStorage.setItem(KEY, JSON.stringify(roster)); }
-      function loadMvp(){ try{ const raw = localStorage.getItem(KEY_MVP); if(raw) return JSON.parse(raw);}catch(e){} return null; }
+      function loadMvp(){ try{ const raw = localStorage.getItem(KEY_MVP); if(raw) return JSON.parse(raw); }catch(e){} return null; }
       function saveMvp(mvp){ if(mvp) localStorage.setItem(KEY_MVP, JSON.stringify(mvp)); else localStorage.removeItem(KEY_MVP); }
 
-      // ---- Progreso semanal / reset ----
+      /* ---------- Progreso semanal / reset ---------- */
       function getLastReset(){ const v = localStorage.getItem(KEY_RESET); return v? parseInt(v,10): null; }
       function setLastReset(ts){ localStorage.setItem(KEY_RESET, String(ts)); }
       function getWeekBounds(){
@@ -745,31 +759,35 @@
           alert.innerHTML = 'Aún no se ha reiniciado esta clase. Usa <strong>“Reset puntos”</strong> al final de la semana.';
         }
       }
-      // -----------------------------------
+      /* --------------------------------------------- */
 
-      let roster = load();
-      let mvp = loadMvp();
-
-      function ensureBadges(){ roster.forEach(a=>{ if(!Array.isArray(a.badges)) a.badges=[]; }); }
-      ensureBadges();
-
+      /* ---------- Insignias / Badges ---------- */
+      function ensureBadges(){ roster.forEach(a=>{ if(!Array.isArray(a.badges)) a.badges = []; }); }
       const BADGE_TYPES = [
         { key:'constancia',    icon:'⭐', label:'Constancia' },
         { key:'companierismo', icon:'🤝', label:'Compañerismo' },
         { key:'lectura',       icon:'📖', label:'Lectura' },
       ];
-      function groupBadges(arr){ const map={constancia:0,companierismo:0,lectura:0}; (arr||[]).forEach(k=>{ if(map[k]!=null) map[k]++; }); return map; }
+      function groupBadges(arr){
+        const map = { constancia:0, companierismo:0, lectura:0 };
+        if(Array.isArray(arr)) arr.forEach(k=>{ if(map[k]!==undefined) map[k]++; });
+        return map;
+      }
       function badgesHTML(a){
-        const m = groupBadges(a.badges);
-        const parts=[]; BADGE_TYPES.forEach(t=>{ if(m[t.key]>0) parts.push(`<span class="badge-chip" data-type="${t.key}">${t.icon} ${t.label} <span class="count">x${m[t.key]}</span></span>`); });
+        const map = groupBadges(a.badges || []);
+        const parts = [];
+        BADGE_TYPES.forEach(t=>{
+          if(map[t.key]>0){
+            parts.push(`<span class="badge-chip" data-type="${t.key}">${t.icon} ${t.label} <span class="count">x${map[t.key]}</span></span>`);
+          }
+        });
         return parts.join(' ');
       }
-
       function openBadgePicker(anchor, idx){
         closeBadgePicker();
         const r = anchor.getBoundingClientRect();
         const pop = document.createElement('div');
-        pop.id = POP_ID;
+        pop.id = 'c5b-badge-pop';
         pop.className = 'fixed z-40 bg-white shadow-xl border border-gray-200 rounded-xl p-2';
         pop.style.left = (r.left + window.scrollX) + 'px';
         pop.style.top  = (r.bottom + window.scrollY + 6) + 'px';
@@ -778,23 +796,35 @@
           const b = document.createElement('button');
           b.className = 'px-3 py-2 rounded hover:bg-gray-100 flex items-center gap-2 w-full text-sm';
           b.innerHTML = `<span>${t.icon}</span><span>${t.label}</span>`;
-          b.addEventListener('click', ()=>{ roster[idx].badges.push(t.key); save(); renderAll(); closeBadgePicker(); });
+          b.addEventListener('click', ()=>{ addBadge(idx, t.key); closeBadgePicker(); });
           pop.appendChild(b);
         });
 
         const hr = document.createElement('div'); hr.className='my-1 border-t border-gray-200'; pop.appendChild(hr);
         const clear = document.createElement('button');
         clear.className='px-3 py-2 rounded bg-amber-50 hover:bg-amber-100 text-amber-700 w-full text-sm';
-        clear.textContent='🧹 Quitar todas';
-        clear.addEventListener('click', ()=>{ roster[idx].badges=[]; save(); renderAll(); closeBadgePicker(); });
+        clear.textContent = '🧹 Quitar todas';
+        clear.addEventListener('click', ()=>{
+          roster[idx].badges = [];
+          save(); renderAll(); closeBadgePicker();
+        });
         pop.appendChild(clear);
 
         document.body.appendChild(pop);
-        setTimeout(()=>{ document.addEventListener('mousedown', onDoc, {once:true}); document.addEventListener('keydown', onEsc, {once:true}); },0);
-        function onDoc(e){ if(!pop.contains(e.target)) closeBadgePicker(); }
-        function onEsc(e){ if(e.key==='Escape') closeBadgePicker(); }
+        const closeOnClick = (e)=>{ if(!pop.contains(e.target)) closeBadgePicker(); };
+        const closeOnEsc = (e)=>{ if(e.key==='Escape') closeBadgePicker(); };
+        setTimeout(()=>{
+          document.addEventListener('mousedown', closeOnClick, { once:true });
+          document.addEventListener('keydown', closeOnEsc, { once:true });
+        }, 0);
       }
-      function closeBadgePicker(){ const el=document.getElementById(POP_ID); if(el) el.remove(); }
+      function closeBadgePicker(){ const el = document.getElementById('c5b-badge-pop'); if(el) el.remove(); }
+      function addBadge(idx, key){ ensureBadges(); roster[idx].badges.push(key); save(); renderAll(); }
+      /* --------------------------------------- */
+
+      let roster = load();
+      let mvp = loadMvp();
+      ensureBadges();
 
       function sortRoster(){ roster.sort((a,b)=> b.points - a.points || a.name.localeCompare(b.name)); }
       function stats(){
@@ -855,16 +885,20 @@
         roster[idx].points = Math.max(0, roster[idx].points + delta);
         save(); renderAll();
       });
+
       $('#c5b-btn-mvp').addEventListener('click', ()=>{
         if(!roster.length) return;
         const idx = Math.floor(Math.random()*roster.length);
         mvp = { name: roster[idx].name, points: roster[idx].points }; saveMvp(mvp); renderAll();
       });
+
       $('#c5b-btn-clear-mvp').addEventListener('click', ()=>{ mvp=null; saveMvp(null); renderAll(); });
+
       $('#c5b-btn-reset').addEventListener('click', ()=>{
         if(confirm('¿Seguro que quieres poner a 0 todos los puntos de 5ºB?')){
-          roster = roster.map(a=>({name:a.name, points:0, badges:[]})); mvp=null; save(); saveMvp(null);
-          setLastReset(Date.now()); renderAll();
+          roster = roster.map(a=>({name:a.name, points:0})); mvp=null; save(); saveMvp(null);
+          setLastReset(Date.now());
+          renderAll();
         }
       });
 
@@ -879,7 +913,7 @@
           const row = btn.closest('tr'); row.classList.add('shake'); setTimeout(()=> row.classList.remove('shake'), 220);
         }
         if(action==='star'){ mvp = { name: roster[idx].name, points: roster[idx].points }; saveMvp(mvp); }
-        if(action==='badge'){ openBadgePicker(btn, idx); return; }
+        if(action==='badge'){ openBadgePicker(btn, idx); return; } // importante: return
 
         save(); renderAll();
       });
@@ -890,7 +924,7 @@
       $('#c5b-editor-apply').addEventListener('click', ()=>{
         const lines = $('#c5b-textarea').value.split('\n').map(s=>s.trim()).filter(Boolean);
         if(!lines.length) return;
-        roster = lines.map(n=>({name:n, points:0, badges:[]})); mvp=null; save(); saveMvp(null);
+        roster = lines.map(n=>({name:n, points:0})); mvp=null; save(); saveMvp(null);
         editor.classList.add('hidden'); renderAll();
       });
 
@@ -983,16 +1017,6 @@
       </div>
     </div>
 
-    <!-- Leyenda de insignias -->
-    <div class="bg-white shadow rounded-xl p-4">
-      <p class="text-sm font-semibold mb-2">Insignias disponibles</p>
-      <div class="flex flex-wrap gap-2">
-        <span class="badge-chip" data-type="constancia">⭐ Constancia <span class="count">+1</span></span>
-        <span class="badge-chip" data-type="companierismo">🤝 Compañerismo <span class="count">+1</span></span>
-        <span class="badge-chip" data-type="lectura">📖 Lectura <span class="count">+1</span></span>
-      </div>
-    </div>
-
     <!-- Semana en curso (L–V) -->
     <div id="c6a-week" class="bg-white shadow rounded-xl p-4">
       <div class="flex items-center justify-between">
@@ -1014,7 +1038,17 @@
       </div>
     </div>
 
-    <!-- Tabla de clasificación (con Insignias) -->
+    <!-- Leyenda de insignias (opcional) -->
+    <div class="bg-white shadow rounded-xl p-4">
+      <p class="text-sm font-semibold mb-2">Insignias disponibles</p>
+      <div class="flex flex-wrap gap-2">
+        <span class="badge-chip" data-type="constancia">⭐ Constancia <span class="count">+1</span></span>
+        <span class="badge-chip" data-type="companierismo">🤝 Compañerismo <span class="count">+1</span></span>
+        <span class="badge-chip" data-type="lectura">📖 Lectura <span class="count">+1</span></span>
+      </div>
+    </div>
+
+    <!-- Tabla de clasificación -->
     <div class="overflow-x-auto bg-white shadow rounded-xl">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
@@ -1049,7 +1083,6 @@
       const KEY = 'fantasy_6a_roster_v1';
       const KEY_MVP = 'fantasy_6a_mvp_v1';
       const KEY_RESET = 'fantasy_6a_last_reset_v1';
-      const POP_ID = 'c6a-badge-pop';
 
       const defaultNames = [
         'Andrés','Camila','Guille','Marta','Óscar','Teresa','Iker','Ariadna','Raúl','Nerea',
@@ -1059,12 +1092,12 @@
 
       const $ = (sel)=>sec.querySelector(sel);
 
-      function load(){ try{ const raw = localStorage.getItem(KEY); if(raw) return JSON.parse(raw);}catch(e){} return defaultNames.map(n=>({name:n, points:0, badges:[]})); }
+      function load(){ try{ const raw = localStorage.getItem(KEY); if(raw) return JSON.parse(raw);}catch(e){} return defaultNames.map(n=>({name:n, points:0})); }
       function save(){ localStorage.setItem(KEY, JSON.stringify(roster)); }
       function loadMvp(){ try{ const raw = localStorage.getItem(KEY_MVP); if(raw) return JSON.parse(raw);}catch(e){} return null; }
       function saveMvp(mvp){ if(mvp) localStorage.setItem(KEY_MVP, JSON.stringify(mvp)); else localStorage.removeItem(KEY_MVP); }
 
-      // ---- Progreso semanal / reset ----
+      /* ---------- Progreso semanal / reset ---------- */
       function getLastReset(){ const v = localStorage.getItem(KEY_RESET); return v? parseInt(v,10): null; }
       function setLastReset(ts){ localStorage.setItem(KEY_RESET, String(ts)); }
       function getWeekBounds(){
@@ -1109,31 +1142,35 @@
           alert.innerHTML = 'Aún no se ha reiniciado esta clase. Usa <strong>“Reset puntos”</strong> al final de la semana.';
         }
       }
-      // -----------------------------------
+      /* --------------------------------------------- */
 
-      let roster = load();
-      let mvp = loadMvp();
-
-      function ensureBadges(){ roster.forEach(a=>{ if(!Array.isArray(a.badges)) a.badges=[]; }); }
-      ensureBadges();
-
+      /* ---------- Insignias / Badges ---------- */
+      function ensureBadges(){ roster.forEach(a=>{ if(!Array.isArray(a.badges)) a.badges = []; }); }
       const BADGE_TYPES = [
         { key:'constancia',    icon:'⭐', label:'Constancia' },
         { key:'companierismo', icon:'🤝', label:'Compañerismo' },
         { key:'lectura',       icon:'📖', label:'Lectura' },
       ];
-      function groupBadges(arr){ const map={constancia:0,companierismo:0,lectura:0}; (arr||[]).forEach(k=>{ if(map[k]!=null) map[k]++; }); return map; }
+      function groupBadges(arr){
+        const map = { constancia:0, companierismo:0, lectura:0 };
+        if(Array.isArray(arr)) arr.forEach(k=>{ if(map[k]!==undefined) map[k]++; });
+        return map;
+      }
       function badgesHTML(a){
-        const m = groupBadges(a.badges);
-        const parts=[]; BADGE_TYPES.forEach(t=>{ if(m[t.key]>0) parts.push(`<span class="badge-chip" data-type="${t.key}">${t.icon} ${t.label} <span class="count">x${m[t.key]}</span></span>`); });
+        const map = groupBadges(a.badges || []);
+        const parts = [];
+        BADGE_TYPES.forEach(t=>{
+          if(map[t.key]>0){
+            parts.push(`<span class="badge-chip" data-type="${t.key}">${t.icon} ${t.label} <span class="count">x${map[t.key]}</span></span>`);
+          }
+        });
         return parts.join(' ');
       }
-
       function openBadgePicker(anchor, idx){
         closeBadgePicker();
         const r = anchor.getBoundingClientRect();
         const pop = document.createElement('div');
-        pop.id = POP_ID;
+        pop.id = 'c6a-badge-pop';
         pop.className = 'fixed z-40 bg-white shadow-xl border border-gray-200 rounded-xl p-2';
         pop.style.left = (r.left + window.scrollX) + 'px';
         pop.style.top  = (r.bottom + window.scrollY + 6) + 'px';
@@ -1142,23 +1179,35 @@
           const b = document.createElement('button');
           b.className = 'px-3 py-2 rounded hover:bg-gray-100 flex items-center gap-2 w-full text-sm';
           b.innerHTML = `<span>${t.icon}</span><span>${t.label}</span>`;
-          b.addEventListener('click', ()=>{ roster[idx].badges.push(t.key); save(); renderAll(); closeBadgePicker(); });
+          b.addEventListener('click', ()=>{ addBadge(idx, t.key); closeBadgePicker(); });
           pop.appendChild(b);
         });
 
         const hr = document.createElement('div'); hr.className='my-1 border-t border-gray-200'; pop.appendChild(hr);
         const clear = document.createElement('button');
         clear.className='px-3 py-2 rounded bg-amber-50 hover:bg-amber-100 text-amber-700 w-full text-sm';
-        clear.textContent='🧹 Quitar todas';
-        clear.addEventListener('click', ()=>{ roster[idx].badges=[]; save(); renderAll(); closeBadgePicker(); });
+        clear.textContent = '🧹 Quitar todas';
+        clear.addEventListener('click', ()=>{
+          roster[idx].badges = [];
+          save(); renderAll(); closeBadgePicker();
+        });
         pop.appendChild(clear);
 
         document.body.appendChild(pop);
-        setTimeout(()=>{ document.addEventListener('mousedown', onDoc, {once:true}); document.addEventListener('keydown', onEsc, {once:true}); },0);
-        function onDoc(e){ if(!pop.contains(e.target)) closeBadgePicker(); }
-        function onEsc(e){ if(e.key==='Escape') closeBadgePicker(); }
+        const closeOnClick = (e)=>{ if(!pop.contains(e.target)) closeBadgePicker(); };
+        const closeOnEsc = (e)=>{ if(e.key==='Escape') closeBadgePicker(); };
+        setTimeout(()=>{
+          document.addEventListener('mousedown', closeOnClick, { once:true });
+          document.addEventListener('keydown', closeOnEsc, { once:true });
+        }, 0);
       }
-      function closeBadgePicker(){ const el=document.getElementById(POP_ID); if(el) el.remove(); }
+      function closeBadgePicker(){ const el = document.getElementById('c6a-badge-pop'); if(el) el.remove(); }
+      function addBadge(idx, key){ ensureBadges(); roster[idx].badges.push(key); save(); renderAll(); }
+      /* --------------------------------------- */
+
+      let roster = load();
+      let mvp = loadMvp();
+      ensureBadges();
 
       function sortRoster(){ roster.sort((a,b)=> b.points - a.points || a.name.localeCompare(b.name)); }
       function stats(){
@@ -1219,16 +1268,20 @@
         roster[idx].points = Math.max(0, roster[idx].points + delta);
         save(); renderAll();
       });
+
       $('#c6a-btn-mvp').addEventListener('click', ()=>{
         if(!roster.length) return;
         const idx = Math.floor(Math.random()*roster.length);
         mvp = { name: roster[idx].name, points: roster[idx].points }; saveMvp(mvp); renderAll();
       });
+
       $('#c6a-btn-clear-mvp').addEventListener('click', ()=>{ mvp=null; saveMvp(null); renderAll(); });
+
       $('#c6a-btn-reset').addEventListener('click', ()=>{
         if(confirm('¿Seguro que quieres poner a 0 todos los puntos de 6ºA?')){
-          roster = roster.map(a=>({name:a.name, points:0, badges:[]})); mvp=null; save(); saveMvp(null);
-          setLastReset(Date.now()); renderAll();
+          roster = roster.map(a=>({name:a.name, points:0})); mvp=null; save(); saveMvp(null);
+          setLastReset(Date.now());
+          renderAll();
         }
       });
 
@@ -1254,7 +1307,7 @@
       $('#c6a-editor-apply').addEventListener('click', ()=>{
         const lines = $('#c6a-textarea').value.split('\n').map(s=>s.trim()).filter(Boolean);
         if(!lines.length) return;
-        roster = lines.map(n=>({name:n, points:0, badges:[]})); mvp=null; save(); saveMvp(null);
+        roster = lines.map(n=>({name:n, points:0})); mvp=null; save(); saveMvp(null);
         editor.classList.add('hidden'); renderAll();
       });
 
@@ -1610,7 +1663,7 @@
       $('#c6b-btn-reset').addEventListener('click', ()=>{
         if(confirm('¿Seguro que quieres poner a 0 todos los puntos de 6ºB?')){
           roster = roster.map(a=>({name:a.name, points:0})); mvp=null; save(); saveMvp(null);
-          setLastReset(Date.now()); // registra fecha de reset
+          setLastReset(Date.now());
           renderAll();
         }
       });
@@ -1626,7 +1679,7 @@
           const row = btn.closest('tr'); row.classList.add('shake'); setTimeout(()=> row.classList.remove('shake'), 220);
         }
         if(action==='star'){ mvp = { name: roster[idx].name, points: roster[idx].points }; saveMvp(mvp); }
-        if(action==='badge'){ openBadgePicker(btn, idx); return; } // no guardes aún
+        if(action==='badge'){ openBadgePicker(btn, idx); return; }
 
         save(); renderAll();
       });
