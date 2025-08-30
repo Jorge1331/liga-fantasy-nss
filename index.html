@@ -1965,26 +1965,21 @@
   </div>
 
   <script>
-    function startApp(){
-      document.getElementById('intro').classList.add('hidden');
-      document.getElementById('mainApp').classList.remove('hidden');
-      document.getElementById('selector').classList.remove('hidden');
-      document.getElementById('nav-top').classList.add('hidden');
+  function startApp(){
+    // Si existe el gate y NO está desbloqueado, abrir PIN y salir
+    if (typeof _unlocked !== 'undefined' && !_unlocked) {
+      openGate('check');   // el OK del modal llamará de nuevo a startApp()
+      return;
     }
-
-    function showSection(sec){
-      document.querySelectorAll('main > section').forEach(s=>s.classList.add('hidden'));
-      document.getElementById('selector').classList.add('hidden');
-      document.getElementById('nav-top').classList.remove('hidden');
-      document.getElementById(sec).classList.remove('hidden');
-    }
-
-    function goHome(){
-      document.querySelectorAll('main > section').forEach(s=>s.classList.add('hidden'));
-      document.getElementById('selector').classList.remove('hidden');
-      document.getElementById('nav-top').classList.add('hidden');
-    }
-  </script>
+    // --- flujo normal si ya hay PIN correcto ---
+    document.getElementById('intro').classList.add('hidden');
+    document.getElementById('mainApp').classList.remove('hidden');
+    document.getElementById('selector').classList.remove('hidden');
+    document.getElementById('nav-top').classList.add('hidden');
+    // limpiar tema al entrar (si usas tema por clase)
+    document.documentElement.setAttribute('data-theme','');
+  }
+</script>
 </body><!-- Gate PIN docente -->
 <div id="gate" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50">
   <div class="bg-white rounded-2xl p-6 w-[min(92vw,420px)]">
@@ -2038,15 +2033,5 @@
   }
   document.getElementById('gate-ok').addEventListener('click', handleGateOk);
   document.getElementById('gate-cancel').addEventListener('click', ()=> document.getElementById('gate').classList.add('hidden'));
-
-  // Hook al CTA del hero: pedimos PIN antes de entrar
-  // Cambia el onclick del botón del hero a openGate() o añade este listener:
-  document.addEventListener('click', (e)=>{
-    const btn = e.target.closest('button');
-    if(!btn) return;
-    if(btn.textContent.includes('Entrar a la Liga')){
-      e.preventDefault(); openGate();
-    }
-  });
 </script>
 </html>
