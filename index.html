@@ -220,7 +220,26 @@
       </div>
     </div>
 
-    <!-- Tabla de clasificación -->
+    <!-- Tabla de clasificación --><!-- Semana en curso (L–V) -->
+<div id="c5a-week" class="bg-white shadow rounded-xl p-4">
+  <div class="flex items-center justify-between">
+    <p class="font-semibold">Semana en curso (L–V)</p>
+    <p id="c5a-week-label" class="text-sm text-gray-500">0%</p>
+  </div>
+  <div class="h-3 bg-gray-100 rounded-full mt-2 overflow-hidden">
+    <div id="c5a-week-bar" class="h-3 bg-gradient-to-r from-indigo-500 to-blue-500" style="width:0%"></div>
+  </div>
+  <div class="flex gap-1 mt-2" id="c5a-week-days">
+    <span data-i="0" class="px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600">L</span>
+    <span data-i="1" class="px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600">M</span>
+    <span data-i="2" class="px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600">X</span>
+    <span data-i="3" class="px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600">J</span>
+    <span data-i="4" class="px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600">V</span>
+  </div>
+  <div id="c5a-reset-alert" class="hidden mt-3 px-3 py-2 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 text-sm">
+    Hace <span id="c5a-days-since">—</span> días del último reinicio. Considera usar “Reset puntos”.
+  </div>
+</div>
     <div class="overflow-x-auto bg-white shadow rounded-xl">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
@@ -398,6 +417,7 @@
           renderAll();
         }
       });
+      const KEY_RESET = 'fantasy_5a_last_reset_v1';
 
       // Tabla: delegación de eventos
       $('#c5a-tbody').addEventListener('click', (e)=>{
@@ -418,7 +438,57 @@
       const editor = $('#c5a-editor');
       $('#c5a-btn-edit').addEventListener('click', ()=>{
         editor.classList.toggle('hidden');
-        renderEditor();
+        renderEditor();function getLastReset(){
+  const v = localStorage.getItem(KEY_RESET);
+  return v ? parseInt(v,10) : null;
+}
+function setLastReset(ts){ localStorage.setItem(KEY_RESET, String(ts)); }
+
+function getWeekBounds(){
+  const now = new Date();
+  const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const mondayOffset = (d.getDay()+6)%7; // L=0
+  const start = new Date(d); start.setDate(d.getDate()-mondayOffset); start.setHours(0,0,0,0);
+  const end   = new Date(start); end.setDate(start.getDate()+4); end.setHours(23,59,59,999); // V
+  return { now, start, end };
+}
+
+function renderProgress(){
+  const bar   = $('#c5a-week-bar');
+  const label = $('#c5a-week-label');
+  const chips = $('#c5a-week-days')?.querySelectorAll('span') || [];
+  const alert = $('#c5a-reset-alert');
+  const daysSpan = $('#c5a-days-since');
+
+  const { now, start, end } = getWeekBounds();
+  const total = Math.max(1, end - start);
+  let pct = Math.max(0, Math.min(1, (now - start)/total));
+  if(now > end) pct = 1;
+  if(bar) bar.style.width = (pct*100).toFixed(0)+'%';
+  if(label) label.textContent = (pct*100).toFixed(0)+'%';
+
+  // Resalta días L–V alcanzados
+  const dayIdx = Math.min(4, (now.getDay()+6)%7);
+  chips.forEach(el=>{
+    const i = parseInt(el.getAttribute('data-i'),10);
+    const active = (now > end) ? true : i<=dayIdx;
+    el.className = active
+      ? 'px-2 py-0.5 text-xs rounded bg-emerald-100 text-emerald-700'
+      : 'px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600';
+  });
+
+  // Aviso de reset (cada 7 días)
+  const last = getLastReset();
+  if(!alert) return;
+  if(last){
+    const days = Math.floor((Date.now()-last)/(1000*60*60*24));
+    if(daysSpan) daysSpan.textContent = String(days);
+    alert.classList.toggle('hidden', days<7);
+  }else{
+    alert.classList.remove('hidden');
+    alert.innerHTML = 'Aún no se ha reiniciado esta clase. Usa <strong>“Reset puntos”</strong> al final de la semana.';
+  }
+}
       });
       $('#c5a-editor-cancel').addEventListener('click', ()=>{
         editor.classList.add('hidden');
@@ -430,7 +500,10 @@
         mvp = null;
         save(); saveMvp(null);
         editor.classList.add('hidden');
+        setLastReset(Date.now());
         renderAll();
+        renderProgress();
+
       });
 
       // Render SOLO cuando la sección esté visible (no tocamos tu navegación)
