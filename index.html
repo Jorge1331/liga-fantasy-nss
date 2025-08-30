@@ -23,17 +23,81 @@
 </head>
 <body class="min-h-screen bg-gray-100">
   <!-- Hero de Bienvenida -->
-  <section id="intro" class="hero-bg skew-bottom text-center text-white flex flex-col items-center justify-center min-h-screen px-6">
-    <img src="images/logo.png" alt="Logo Colegio" class="w-44 mb-8 drop-shadow-lg" />
-    <h1 class="text-5xl font-extrabold tracking-wide mb-4">LIGA FANTASY NSS 25/26</h1>
-    <p class="text-xl mb-10 max-w-xl mx-auto">¡Motivando el aprendizaje con espíritu competitivo y trabajo en equipo!</p>
-    <div class="flex justify-center mb-12 space-x-6">
-      <img src="https://images.unsplash.com/photo-1596495577886-d920f1fb7238?auto=format&fit=crop&w=240&q=80" alt="Alumno feliz" class="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg"/>
-      <img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=240&q=80" alt="Alumna feliz" class="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg"/>
-    </div>
-    <button onclick="startApp()" class="btn-primary px-8 py-3 rounded-full text-lg font-semibold shadow-xl transition transform hover:-translate-y-1">Entrar a la Liga</button>
-  </section>
+  <section id="intro" class="relative text-center text-white flex flex-col items-center justify-center min-h-screen px-6 overflow-hidden">
+  <style>
+    /* Estilos SOLO para #intro */
+    #intro .bg-hero{
+      position:absolute; inset:0; z-index:-1;
+      background:
+        radial-gradient(1200px 240px at -10% -30%, rgba(99,102,241,.18), transparent 60%),
+        radial-gradient(1000px 220px at 110% -20%, rgba(16,185,129,.18), transparent 60%),
+        linear-gradient(135deg, #1D4ED8 0%, #0f1b3d 100%);
+    }
+    /* Sutil rejilla “gaming” */
+    #intro .grid-mask::before{
+      content:""; position:absolute; inset:0; z-index:-1;
+      background-image:
+        linear-gradient(to right, rgba(255,255,255,.06) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,.06) 1px, transparent 1px);
+      background-size: 28px 28px;
+      mask-image: radial-gradient(closest-side, rgba(255,255,255,.9), transparent);
+      opacity:.35;
+    }
+    /* Orbes suaves */
+    #intro .orb{ position:absolute; filter: blur(24px); opacity:.35; border-radius:9999px; }
+    #intro .orb.o1{ width:280px; height:280px; left:-60px; top:10%; background:#60a5fa; }
+    #intro .orb.o2{ width:220px; height:220px; right:-40px; top:18%; background:#34d399; }
+    /* Botón principal con leve latido */
+    #intro .btn-hero{ background:#1D4ED8; }
+    #intro .btn-hero:hover{ background:#1746c5; transform: translateY(-2px); }
+    #intro .pulse{ animation: pulse 2.2s ease-in-out infinite; }
+    @keyframes pulse{ 0%,100%{ box-shadow:0 0 0 0 rgba(29,78,216,.45);} 50%{ box-shadow:0 0 0 18px rgba(29,78,216,0);} }
+    /* Tarjetas/chips informativas */
+    #intro .chip{
+      background: linear-gradient(180deg, rgba(255,255,255,.16) 0%, rgba(255,255,255,.08) 100%);
+      border:1px solid rgba(255,255,255,.18);
+      backdrop-filter: blur(4px);
+    }
+    /* Ola inferior */
+    #intro svg.wave{ position:absolute; bottom:0; left:0; width:100%; }
+  </style>
 
+  <!-- Fondo -->
+  <div class="bg-hero grid-mask"></div>
+  <div class="orb o1"></div>
+  <div class="orb o2"></div>
+
+  <!-- Logo + Título + Frase (sin cambios de texto) -->
+  <img src="images/logo.png" alt="Logo Colegio" class="w-40 md:w-48 mb-8 drop-shadow-lg" />
+  <h1 class="text-4xl md:text-5xl font-extrabold tracking-wide mb-4">LIGA FANTASY NSS 25/26</h1>
+  <p class="text-lg md:text-xl mb-8 max-w-2xl mx-auto text-white/90">¡Motivando el aprendizaje con espíritu competitivo y trabajo en equipo!</p>
+
+  <!-- Chips informativas -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-4xl mb-8">
+    <div class="chip rounded-2xl px-4 py-3 text-left">
+      <p class="text-sm text-white/80">Clases</p>
+      <p class="text-xl font-bold">5ºA · 5ºB · 6ºA · 6ºB</p>
+    </div>
+    <div class="chip rounded-2xl px-4 py-3 text-left">
+      <p class="text-sm text-white/80">Dinámica</p>
+      <p class="text-xl font-bold">Puntos + Recompensas</p>
+    </div>
+    <div class="chip rounded-2xl px-4 py-3 text-left">
+      <p class="text-sm text-white/80">Participación</p>
+      <p class="text-xl font-bold">Galería & Entrevistas</p>
+    </div>
+  </div>
+
+  <!-- CTA principal (solo uno) -->
+  <button onclick="startApp()" class="btn-hero pulse px-8 py-3 rounded-full text-lg font-semibold shadow-xl transition">
+    Entrar a la Liga
+  </button>
+
+  <!-- Ola inferior -->
+  <svg class="wave" viewBox="0 0 1440 100" preserveAspectRatio="none" aria-hidden="true">
+    <path fill="#ffffff" d="M0,64L80,69.3C160,75,320,85,480,85.3C640,85,800,75,960,69.3C1120,64,1280,64,1360,64L1440,64L1440,100L1360,100C1280,100,1120,100,960,100C800,100,640,100,480,100C320,100,160,100,80,100L0,100Z"></path>
+  </svg>
+</section>
   <!-- App Principal -->
   <div id="mainApp" class="hidden flex flex-col min-h-screen">
     <!-- Header -->
