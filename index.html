@@ -401,42 +401,63 @@
         return parts.join(' ');
       }
       function openBadgePicker(anchor, idx){
-        closeBadgePicker();
-        const r = anchor.getBoundingClientRect();
-        const pop = document.createElement('div');
-        pop.id = 'c5a-badge-pop';
-        pop.className = 'fixed z-40 bg-white shadow-xl border border-gray-200 rounded-xl p-2';
-        pop.style.left = (r.left + window.scrollX) + 'px';
-        pop.style.top  = (r.bottom + window.scrollY + 6) + 'px';
+  // Cierra si ya hay uno abierto en esta celda
+  const cell = anchor.closest('td');
+  if(!cell) return;
 
-        BADGE_TYPES.forEach(t=>{
-          const b = document.createElement('button');
-          b.className = 'px-3 py-2 rounded hover:bg-gray-100 flex items-center gap-2 w-full text-sm';
-          b.innerHTML = `<span>${t.icon}</span><span>${t.label}</span>`;
-          b.addEventListener('click', ()=>{ addBadge(idx, t.key); closeBadgePicker(); });
-          pop.appendChild(b);
-        });
+  closeBadgePicker(); // cierra cualquier otro menú abierto en 5ºA
 
-        const hr = document.createElement('div'); hr.className='my-1 border-t border-gray-200'; pop.appendChild(hr);
-        const clear = document.createElement('button');
-        clear.className='px-3 py-2 rounded bg-amber-50 hover:bg-amber-100 text-amber-700 w-full text-sm';
-        clear.textContent = '🧹 Quitar todas';
-        clear.addEventListener('click', ()=>{
-          roster[idx].badges = [];
-          save(); renderAll(); closeBadgePicker();
-        });
-        pop.appendChild(clear);
+  cell.classList.add('relative');
 
-        document.body.appendChild(pop);
-        const closeOnClick = (e)=>{ if(!pop.contains(e.target)) closeBadgePicker(); };
-        const closeOnEsc = (e)=>{ if(e.key==='Escape') closeBadgePicker(); };
-        setTimeout(()=>{
-          document.addEventListener('mousedown', closeOnClick, { once:true });
-          document.addEventListener('keydown', closeOnEsc, { once:true });
-        }, 0);
-      }
-      function closeBadgePicker(){ const el = document.getElementById('c5a-badge-pop'); if(el) el.remove(); }
-      function addBadge(idx, key){ ensureBadges(); roster[idx].badges.push(key); save(); renderAll(); }
+  // Contenedor inline (no se corta por overflow)
+  const pop = document.createElement('div');
+  pop.id = 'c5a-badge-pop';
+  pop.className = 'absolute right-0 top-full mt-1 z-50 bg-white shadow-xl border border-gray-200 rounded-xl p-2 w-40';
+
+  BADGE_TYPES.forEach(t=>{
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'px-3 py-2 rounded hover:bg-gray-100 flex items-center gap-2 w-full text-sm';
+    b.innerHTML = `<span>${t.icon}</span><span>${t.label}</span>`;
+    b.addEventListener('click', (ev)=>{
+      ev.stopPropagation();
+      addBadge(idx, t.key);
+      closeBadgePicker();
+    });
+    pop.appendChild(b);
+  });
+
+  const hr = document.createElement('div');
+  hr.className='my-1 border-t border-gray-200';
+  pop.appendChild(hr);
+
+  const clear = document.createElement('button');
+  clear.type = 'button';
+  clear.className='px-3 py-2 rounded bg-amber-50 hover:bg-amber-100 text-amber-700 w-full text-sm';
+  clear.textContent = '🧹 Quitar todas';
+  clear.addEventListener('click', (ev)=>{
+    ev.stopPropagation();
+    roster[idx].badges = [];
+    save(); renderAll(); closeBadgePicker();
+  });
+  pop.appendChild(clear);
+
+  cell.appendChild(pop);
+
+  // Cierre al hacer click fuera
+  const outside = (e)=>{
+    if(!pop.contains(e.target)){
+      document.removeEventListener('click', outside);
+      closeBadgePicker();
+    }
+  };
+  setTimeout(()=> document.addEventListener('click', outside), 0);
+}
+
+function closeBadgePicker(){
+  const el = document.getElementById('c5a-badge-pop');
+  if(el) el.remove();
+}
       /* --------------------------------------- */
 
       let roster = load();
