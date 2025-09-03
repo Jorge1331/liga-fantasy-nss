@@ -48,10 +48,37 @@
     .badge-chip[data-type="companierismo"] { background:#fff7ed; color:#9a3412; border-color:#fed7aa; }
     .badge-chip[data-type="lectura"]       { background:#f0f9ff; color:#075985; border-color:#bae6fd; }
     .badge-chip .count { font-weight:700; font-size:11px; opacity:.85; }
+
+    /* ===== Tiles del selector (serio + atractivo) ===== */
+    .btn-tile{
+      position:relative; display:flex; align-items:center; justify-content:center; gap:.6rem;
+      width:100%; min-height:6.5rem; border-radius:1rem; padding:1rem 1.25rem;
+      font-weight:700; color:#fff; letter-spacing:.2px;
+      background:linear-gradient(135deg,#1d4ed8, #0ea5e9);
+      box-shadow: 0 10px 24px rgba(2,6,23,.15), inset 0 0 0 1px rgba(255,255,255,.08);
+      transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+    }
+    .btn-tile:hover{ transform:translateY(-3px); box-shadow:0 16px 30px rgba(2,6,23,.22), inset 0 0 0 1px rgba(255,255,255,.14); filter:saturate(1.05);}
+    .btn-tile:active{ transform:translateY(0); }
+    .btn-tile::after{
+      content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+      background:linear-gradient(120deg, rgba(255,255,255,.18), rgba(255,255,255,0) 40%);
+      mix-blend-mode:overlay; opacity:.25; transition:opacity .2s ease;
+    }
+    .btn-tile:hover::after{ opacity:.35; }
+    .btn-tile .icon{ font-size:1.25rem; opacity:.95; transform:translateY(1px); }
+
+    /* Fondo suave detrás del grid del selector */
+    .selector-surface{ position:relative; }
+    .selector-surface::before{
+      content:""; position:absolute; inset:-12px; pointer-events:none; z-index:0;
+      background:
+        radial-gradient(900px 240px at 20% -5%, rgba(29,78,216,.08), transparent 60%),
+        radial-gradient(700px 200px at 85% -5%, rgba(16,185,129,.08), transparent 55%);
+    }
   </style>
 </head>
-  </style>
-</head>
+
 <body class="min-h-screen bg-gray-100">
   <!-- Hero de Bienvenida -->
   <section id="intro" class="relative text-center text-white flex flex-col items-center justify-center min-h-screen px-6 overflow-hidden">
@@ -129,6 +156,7 @@
     <path fill="#ffffff" d="M0,64L80,69.3C160,75,320,85,480,85.3C640,85,800,75,960,69.3C1120,64,1280,64,1360,64L1440,64L1440,100L1360,100C1280,100,1120,100,960,100C800,100,640,100,480,100C320,100,160,100,80,100L0,100Z"></path>
   </svg>
 </section>
+
   <!-- App Principal -->
   <div id="mainApp" class="hidden flex flex-col min-h-screen">
     <!-- Header -->
@@ -142,22 +170,47 @@
       </div>
     </header>
 
-    <!-- Pantalla de Selección -->
-   <!-- Pantalla de Selección -->
-<section id="selector" class="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 p-6 place-items-center">
-  <button class="w-full h-24 text-white font-bold rounded-lg bg-blue-600 hover:bg-blue-700" onclick="showSection('5a')">Clase 5A</button>
-  <button class="w-full h-24 text-white font-bold rounded-lg bg-blue-600 hover:bg-blue-700" onclick="showSection('5b')">Clase 5B</button>
-  <button class="w-full h-24 text-white font-bold rounded-lg bg-blue-600 hover:bg-blue-700" onclick="showSection('6a')">Clase 6A</button>
+    <!-- Pantalla de Selección (rediseñada) -->
+    <section id="selector"
+      class="selector-surface flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 p-6 place-items-center">
 
-  <button class="w-full h-24 text-white font-bold rounded-lg bg-blue-600 hover:bg-blue-700" onclick="showSection('6b')">Clase 6B</button>
-  <button class="w-full h-24 text-white font-bold rounded-lg bg-gray-800 hover:bg-gray-900" onclick="showSection('objetivos')">Objetivos</button>
+      <button class="btn-tile bg-gradient-to-br from-blue-600 to-indigo-600 focus-visible:outline-white"
+              onclick="showSection('5a')" aria-label="Abrir Clase 5A">
+        <span class="icon">🏫</span> Clase 5A
+      </button>
 
-  <!-- Entrevistas: colocada debajo de Objetivos -->
-  <button class="w-full h-24 text-white font-bold rounded-lg bg-orange-600 hover:bg-orange-700 sm:col-start-1 md:col-start-2"
-          onclick="showSection('entrevistas')">Entrevistas</button>
+      <button class="btn-tile bg-gradient-to-br from-blue-600 to-sky-600 focus-visible:outline-white"
+              onclick="showSection('5b')" aria-label="Abrir Clase 5B">
+        <span class="icon">🏫</span> Clase 5B
+      </button>
 
-  <button class="w-full h-24 text-white font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700" onclick="showSection('recompensas')">Recompensas</button>
-</section>
+      <button class="btn-tile bg-gradient-to-br from-blue-600 to-indigo-600 focus-visible:outline-white"
+              onclick="showSection('6a')" aria-label="Abrir Clase 6A">
+        <span class="icon">🏫</span> Clase 6A
+      </button>
+
+      <button class="btn-tile bg-gradient-to-br from-blue-600 to-sky-600 focus-visible:outline-white"
+              onclick="showSection('6b')" aria-label="Abrir Clase 6B">
+        <span class="icon">🏫</span> Clase 6B
+      </button>
+
+      <button class="btn-tile bg-gradient-to-br from-slate-800 to-slate-900 focus-visible:outline-white"
+              onclick="showSection('objetivos')" aria-label="Ver Objetivos">
+        <span class="icon">🎯</span> Objetivos
+      </button>
+
+      <button class="btn-tile bg-gradient-to-br from-emerald-600 to-teal-600 focus-visible:outline-white"
+              onclick="showSection('recompensas')" aria-label="Ver Recompensas">
+        <span class="icon">🎁</span> Recompensas
+      </button>
+
+      <!-- Entrevistas: debajo de Objetivos -->
+      <button class="btn-tile bg-gradient-to-br from-orange-600 to-amber-600 sm:col-start-1 md:col-start-2 focus-visible:outline-white"
+              onclick="showSection('entrevistas')" aria-label="Ver Entrevistas">
+        <span class="icon">🎤</span> Entrevistas
+      </button>
+    </section>
+
     <!-- Navegación superior clásica -->
     <nav id="nav-top" class="hidden bg-gray-200">
       <div class="max-w-6xl mx-auto flex flex-wrap justify-center gap-2 py-2">
@@ -170,7 +223,6 @@
         <button class="tab-btn bg-orange-600 text-white px-4 py-1 rounded" onclick="showSection('entrevistas')">Entrevistas</button>
       </div>
     </nav>
-
     <!-- Contenido -->
     <main class="flex-1 max-w-6xl mx-auto w-full p-4">
    <section id="5a" class="hidden">
