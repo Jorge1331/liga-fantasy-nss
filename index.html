@@ -5,7 +5,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LIGA FANTASY NSS 25/26</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- === Supabase: inicialización (no rompe tu UI) === -->
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm";
 
+  const SUPABASE_URL = "https://loywjhmhcevktcrdczss.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxveXdqaG1oY2V2a3RjcmRjenNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0MzQ3ODAsImV4cCI6MjA3MzAxMDc4MH0.qXCHRxAezDs2UhwnpRLTCTzB2dwhckjykbmrrsUJqVQ";
+
+  // Cliente global para usarlo luego: window.supa
+  window.supa = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { persistSession: true, autoRefreshToken: true },
+    global: { headers: { "x-application-name": "fantasy-nss" } },
+  });
+
+  // Helper para probar la conexión sin tocar tu lógica
+  window.FANTASY_DB = {
+    async ping() {
+      // intenta primero 'students' (que ya tienes) y luego 'classes'
+      for (const t of ["students", "classes"]) {
+        const { error } = await window.supa.from(t).select("id").limit(1);
+        if (!error) return t; // devuelve el nombre de la tabla alcanzada
+      }
+      throw new Error("No pude leer 'students' ni 'classes'");
+    },
+  };
+
+  console.debug("[FantasyNSS] Supabase inicializado:", SUPABASE_URL);
+</script>
+<!-- === Fin bloque Supabase === -->
   <style>
     :root {
       --color-primary:#1D4ED8;
