@@ -4,6 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LIGA FANTASY NSS 25/26</title>
+  <!-- Supabase JS v2 (CDN) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- Crear cliente global -->
+<script>
+  // URL y ANON KEY de tu proyecto
+  const SUPA_URL = 'https://loywjhmhcevktcrdzcss.supabase.co';
+  const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxveXdqaG1oY2V2a3RjcmRjenNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0MzQ3ODAsImV4cCI6MjA3MzAxMDc4MH0.qXCHRxAezDs2UhwnpRLTCTzB2dwhckjykbmrrsUJqVQ';
+
+  // Cliente global accesible como window.DB
+  window.DB = supabase.createClient(SUPA_URL, SUPA_ANON);
+</script>
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- === Supabase: inicialización (no rompe tu UI) === -->
 <script type="module">
