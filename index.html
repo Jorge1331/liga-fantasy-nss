@@ -2934,20 +2934,58 @@ document.addEventListener('DOMContentLoaded', ()=>{
   const errLbl  = document.getElementById('pinErrorPage');
   const okMsg   = document.getElementById('pinSuccessPage');
 
-  // === Navegación robusta a una sección de clase (intenta 3 caminos)
-function navToSection(sec){
-  // 1) Si existe showSection original
-  if (typeof window.showSection === 'function') {
-    try { window.showSection(sec); return true; } catch(e){}
+  // Muestra SOLO una sección y oculta todo lo demás (sin depender de otras funciones)
+  function showOnly(secId){
+    const target = document.getElementById(secId);
+    if(!target) return false;
+    // Ocultar todo
+    document.querySelectorAll('main > section').forEach(s=>s.classList.add('hidden'));
+    // Ocultar selector y mostrar nav
+    document.getElementById('selector')?.classList.add('hidden');
+    document.getElementById('nav-top')?.classList.remove('hidden');
+    // Mostrar destino
+    target.classList.remove('hidden');
+    // Aviso por si alguna sección se re-renderiza al mostrarse
+    target.dispatchEvent(new Event('fantasy:show'));
+    return true;
   }
 
-  // 2) Simular click en la tarjeta del selector que apunte a esa sección
-  const card = Array.from(document.querySelectorAll('#selector button, #selector a'))
-    .find(el => {
-      const oc = (el.getAttribute('onclick')||'');
-      return oc.includes(`'${sec}'`) || oc.includes(`("${sec}")`) ||
-             el.dataset?.target === sec || (el.hash === `#${sec}`);
-    });
+  function afterPinOk(){
+    // Creamos el pase one-shot
+    sessionStorage.setItem(ONE_SHOT_KEY, '1');
+
+    // ¿Había clase pendiente?
+    const pending = sessionStorage.getItem(PENDING_SEC_KEY);
+    if (pending){
+      sessionStorage.removeItem(PENDING_SEC_KEY);
+      // Ir DIRECTO a la clase (sin pasar por showSection para evitar bucles)
+      setTimeout(()=>{ 
+        if(!showOnly(pending)){
+          // plan B: vuelve a Inicio
+          if (typeof window.goHome === 'function') window.goHome();
+        }
+      }, 60);
+    } else {
+      // Sin pendiente → vuelve a Inicio con el pase listo
+      if (typeof window.goHome === 'function') setTimeout(()=>window.goHome(), 60);
+    }
+  }
+
+  const submit = ()=>{
+    const value = (input?.value || '').trim();
+    if(value === TEACHER_PIN){
+      if(errLbl) errLbl.textContent = '';
+      if(okMsg)  okMsg.classList.remove('hidden');
+      afterPinOk();
+    } else {
+      if(okMsg)  okMsg.classList.add('hidden');
+      if(errLbl) errLbl.textContent = 'PIN incorrecto';
+    }
+  };
+
+  okBtn?.addEventListener('click', submit);
+  input?.addEventListener('keydown', (e)=>{ if(e.key==='Enter') submit(); });
+});
   if (card) { card.click(); return true; }
 
   // 3) Mostrar manualmente la sección en el DOM
@@ -3005,29 +3043,45 @@ afterPinOk();
    - Si alguien muestra una clase privada manipulando el DOM sin showSection,
      la ocultamos al instante y redirigimos a Acceso tutores guardando la pendiente. */
 (function guardByVisibility(){
-  const PRIVATE_SECTIONS = new Set(['5a','5b','6a','6b']); // asegúrate de que coincide con tus IDs
   const main = document.querySelector('main');
   if(!main) return;
 
-  function hasOneShot(){ return sessionStorage.getItem('fantasy_teacher_oneshot') === '1'; }
-  function consumeOneShot(){ if(!hasOneShot()) return false; sessionStorage.removeItem('fantasy_teacher_oneshot'); return true; }
+  function hasOneShot(){ return sessionStorage.getItem(ONE_SHOT_KEY) === '1'; }
+  function consumeOneShot(){ if(!hasOneShot()) return false; sessionStorage.removeItem(ONE_SHOT_KEY); return true; }
+
+  // Muestra SOLO una sección (misma función que arriba, duplicada aquí dentro)
+  function showOnly(secId){
+    const target = document.getElementById(secId);
+    if(!target) return false;
+    document.querySelectorAll('main > section').forEach(s=>s.classList.add('hidden'));
+    document.getElementById('selector')?.classList.add('hidden');
+    document.getElementById('nav-top')?.classList.remove('hidden');
+    target.classList.remove('hidden');
+    target.dispatchEvent(new Event('fantasy:show'));
+    return true;
+  }
 
   function enforce(el){
     if (!PRIVATE_SECTIONS.has(el.id)) return;
 
     // Si aparece una clase privada…
     if (hasOneShot()){
-      // …permitimos y CONSUMIMOS el pase aquí
+      // …permitimos y CONSUMIMOS el pase aquí (una sola entrada)
       consumeOneShot();
       return;
     }
-    // …si no hay pase, ocultamos y mandamos a “Acceso tutores”
+    // …si no hay pase, cortar y mandar a Acceso tutores
     el.classList.add('hidden');
     document.querySelectorAll('main > section').forEach(s=>s.classList.add('hidden'));
-    document.getElementById('acceso-profes')?.classList.remove('hidden');
-    // guardamos pendiente si no estaba ya
-    if (!sessionStorage.getItem('fantasy_pending_section')) {
-      sessionStorage.setItem('fantasy_pending_section', el.id);
+    const pinPage = document.getElementById('acceso-profes');
+    if(pinPage) {
+      pinPage.classList.remove('hidden');
+      document.getElementById('selector')?.classList.add('hidden');
+      document.getElementById('nav-top')?.classList.remove('hidden');
+      // guardar pendiente (si no estaba)
+      if (!sessionStorage.getItem(PENDING_SEC_KEY)) {
+        sessionStorage.setItem(PENDING_SEC_KEY, el.id);
+      }
     }
   }
 
