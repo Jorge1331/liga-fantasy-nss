@@ -237,9 +237,10 @@
         <span class="icon">🎤</span> Entrevistas
       </button>
       <!-- Tarjeta Acceso profes (nueva) -->
+<!-- Tarjeta Acceso tutores (colócala JUSTO después de la tarjeta de Entrevistas) -->
 <button onclick="showSection('acceso-profes')"
-  class="w-full sm:w-60 bg-gray-900 text-white rounded-2xl p-5 shadow hover:shadow-lg hover:-translate-y-0.5 transition">
-  <div class="text-xl font-bold mb-1">Acceso profes</div>
+  class="w-full sm:w-60 bg-gray-900 text-white rounded-2xl p-5 shadow hover:shadow-lg hover:-translate-y-0.5 transition order-30">
+  <div class="text-xl font-bold mb-1">Acceso tutores</div>
   <p class="text-sm opacity-90">Introduce el PIN para abrir una clase</p>
 </button>
     </section>
@@ -2582,7 +2583,7 @@ function renderProgress(){
      <!-- === Sección Acceso profes (nueva) === -->
 <section id="acceso-profes" class="hidden">
   <div class="max-w-md mx-auto bg-white rounded-2xl shadow p-6">
-    <h3 class="text-2xl font-bold mb-2">Acceso profes</h3>
+    <h3 class="text-2xl font-bold mb-2">Acceso Tutores</h3>
     <p class="text-sm text-gray-600 mb-4">
       Introduce el PIN para desbloquear <strong>una</strong> entrada a una clase.
     </p>
@@ -2873,30 +2874,38 @@ document.addEventListener('visibilitychange', () => {
 });
 </script>
 <script>
-/* ======= PIN profesores (one‑shot: un uso por PIN) ======= */
+<script>
+/* ======= PIN tutores (one‑shot: un uso por PIN) ======= */
 const PRIVATE_SECTIONS = new Set(['5a','5b','6a','6b']); // <-- ajusta si tus IDs son otros
-const TEACHER_PIN = '2580'; // <-- CAMBIA AQUÍ TU PIN
+const TEACHER_PIN = '2580'; // <-- CAMBIA TU PIN
 const ONE_SHOT_KEY = 'fantasy_teacher_oneshot';
 
-/* Estado del token one‑shot */
-function setOneShotUnlock(){ sessionStorage.setItem(ONE_SHOT_KEY, '1'); }
-function hasOneShotUnlock(){ return sessionStorage.getItem(ONE_SHOT_KEY) === '1'; }
-function consumeOneShot(){ if(!hasOneShotUnlock()) return false; sessionStorage.removeItem(ONE_SHOT_KEY); return true; }
+/* Estado del pase de una clase */
+function setOneShotUnlock(){ sessionStorage.setItem(ONE_SHOT_KEY, '1'); window.__fantasy_unlocked = true; }
+function hasOneShotUnlock(){ return sessionStorage.getItem(ONE_SHOT_KEY) === '1' || window.__fantasy_unlocked === true; }
+function consumeOneShot(){
+  if (!hasOneShotUnlock()) return false;
+  sessionStorage.removeItem(ONE_SHOT_KEY);
+  window.__fantasy_unlocked = false;
+  return true;
+}
 
-/* Página de Acceso profes: wire */
+/* Página Acceso tutores: wire */
 document.addEventListener('DOMContentLoaded', ()=>{
   const okBtn   = document.getElementById('pinOkPage');
   const input   = document.getElementById('pinInputPage');
   const errLbl  = document.getElementById('pinErrorPage');
   const okMsg   = document.getElementById('pinSuccessPage');
 
-  if(okBtn){
+  if (okBtn){
     const submit = ()=>{
       const value = (input?.value || '').trim();
       if(value === TEACHER_PIN){
         setOneShotUnlock();
         if(errLbl) errLbl.textContent = '';
         if(okMsg)  okMsg.classList.remove('hidden');
+        // ⚠️ Te llevo a Inicio automáticamente para que elijas la clase
+        if (typeof goHome === 'function') goHome();
       }else{
         if(okMsg)  okMsg.classList.add('hidden');
         if(errLbl) errLbl.textContent = 'PIN incorrecto';
@@ -2907,8 +2916,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
   }
 });
 
-/* Guardia: impide abrir clases privadas si no hay token.
-   NO toca tus datos ni llama a funciones de reset. */
+/* Guardia: impide abrir clases privadas si no hay pase.
+   No borra datos; solo controla visibilidad. */
 (function guardia(){
   const main = document.querySelector('main');
   if(!main) return;
@@ -2916,16 +2925,14 @@ document.addEventListener('DOMContentLoaded', ()=>{
   function enforce(sectionEl){
     if (PRIVATE_SECTIONS.has(sectionEl.id)){
       if (consumeOneShot()){
-        // Permitido una vez
+        // Permitido UNA vez
         return;
       }
-      // Bloquear y mandar a la página de PIN
+      // Sin pase -> envía a la página de Acceso tutores
       sectionEl.classList.add('hidden');
-      // Muestra la pantalla de Acceso profes (pública)
       document.querySelectorAll('main > section').forEach(s=>s.classList.add('hidden'));
       const pinPage = document.getElementById('acceso-profes');
       if(pinPage) pinPage.classList.remove('hidden');
-      // Deja el selector oculto: el profe decide cuándo volver con "Inicio"
     }
   }
 
@@ -2935,7 +2942,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
     if(visible) enforce(visible);
   }, 0);
 
-  // Observa cuando se muestre una sección
+  // Observador de cambios de visibilidad
   const mo = new MutationObserver((mutations)=>{
     for(const m of mutations){
       if(m.type==='attributes' && m.attributeName==='class'){
@@ -2950,19 +2957,18 @@ document.addEventListener('DOMContentLoaded', ()=>{
   mo.observe(main, { attributes:true, subtree:true, attributeFilter:['class'] });
 })();
 
-/* Parche suave de showSection por si tu app lo usa directamente */
+/* Parche suave de showSection (si tu app lo usa) */
 (function patchShowSection(){
   const old = window.showSection;
   window.showSection = function(sec){
     const target = document.getElementById(sec);
     if (target && PRIVATE_SECTIONS.has(sec)){
       if (consumeOneShot()){
-        // OK, entrar
+        // Pase consumido -> permitir navegar a la clase
       } else {
-        // Redirige a la página de PIN
+        // Sin pase -> manda a Acceso tutores
         document.querySelectorAll('main > section').forEach(s=>s.classList.add('hidden'));
-        const pinPage = document.getElementById('acceso-profes');
-        if(pinPage) pinPage.classList.remove('hidden');
+        document.getElementById('acceso-profes')?.classList.remove('hidden');
         return;
       }
     }
@@ -2970,6 +2976,5 @@ document.addEventListener('DOMContentLoaded', ()=>{
   };
 })();
 </script>
-
 </body>
 </html>
