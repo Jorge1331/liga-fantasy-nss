@@ -2575,33 +2575,62 @@ function getLocalTimestamp(){
 function bumpLocalTimestamp(){
   setMetaSilently(Date.now());
 }
-  let isApplyingFromCloud = false; // ⬅️ NUEVO: bandera para evitar bucles
-
+ 
   // --- UI: botón y barra de estado (posición fija, no empuja layout) ---
   function ensureUI(){
-    const headerRow = document.querySelector('header .max-w-6xl');
-    if(!headerRow || document.getElementById('cloudStatusBar')) return;
+  const headerRow = document.querySelector('header .max-w-6xl');
+  if(!headerRow || document.getElementById('cloudStatusBar')) return;
 
-    // Botón "Sincronizar ahora"
-    const right = document.createElement('div');
-    right.className = 'flex items-center gap-2';
-   right.innerHTML = `
-  <button id="saveNowBtn" class="bg-indigo-600 text-white text-sm px-3 py-1 rounded hover:bg-indigo-700 transition">
-    Guardar ahora
-  </button>
-  <button id="syncBtn" class="bg-emerald-600 text-white text-sm px-3 py-1 rounded hover:bg-emerald-700 transition">
-    Sincronizar ahora
-  </button>`;
-    headerRow.appendChild(right);
-    document.getElementById('saveNowBtn')?.addEventListener('click', async () => {
-  try {
-    bumpLocalTimestamp();          // marca cambio inmediato
-    await saveToCloud();           // sube YA
-  } catch (e) {
-    console.warn(e);
-    tempStatus('❌ Error al guardar ahora', 'error', 2500);
-  }
-});
+  // Contenedor a la derecha
+  const right = document.createElement('div');
+  right.className = 'flex items-center gap-2';
+  right.innerHTML = `
+    <button id="saveNowBtn" class="bg-indigo-600 text-white text-sm px-3 py-1 rounded hover:bg-indigo-700 transition">
+      Guardar ahora
+    </button>
+    <button id="syncBtn" class="bg-emerald-600 text-white text-sm px-3 py-1 rounded hover:bg-emerald-700 transition">
+      Sincronizar ahora
+    </button>`;
+  headerRow.appendChild(right);
+
+  // Eventos
+  document.getElementById('syncBtn')?.addEventListener('click', manualSync);
+  document.getElementById('saveNowBtn')?.addEventListener('click', async () => {
+    try { bumpLocalTimestamp(); await saveToCloud(); }
+    catch(e){ console.warn(e); tempStatus('❌ Error al guardar ahora','error',2500); }
+  });
+
+  // Barra de estado superpuesta
+  const statusBar = document.createElement('div');
+  statusBar.id = 'cloudStatusBar';
+  statusBar.style.position = 'fixed';
+  statusBar.style.top = '56px';
+  statusBar.style.left = '0';
+  statusBar.style.right = '0';
+  statusBar.style.zIndex = '50';
+  statusBar.style.pointerEvents = 'none';
+  statusBar.style.transition = 'opacity .25s ease';
+  statusBar.style.opacity = '0';
+  statusBar.className = 'text-sm px-4 py-2 text-center';
+  document.body.appendChild(statusBar);
+}
+
+// Llamadas para que SIEMPRE se pinte la UI
+document.addEventListener('DOMContentLoaded', ensureUI);
+(function hookStart(){
+  const orig = window.startApp;
+  window.startApp = async function(){
+    ensureUI(); // <- importante
+    try{
+      await supa.from(TABLE).select('id').limit(1);
+      await reconcile();
+    }catch(e){
+      console.warn('No se pudo sincronizar al inicio', e);
+      tempStatus('⚠️ Nube no disponible. Usando copia local.','error',3000);
+    }
+    orig();
+  };
+})();
 
     // Barra fija (no mueve el layout)
     const statusBar = document.createElement('div');
@@ -2833,39 +2862,7 @@ window.addEventListener('beforeunload', () => { try { saveToCloud(); } catch {} 
 document.addEventListener('visibilitychange', () => { if (document.hidden) { try { saveToCloud(); } catch {} }});
 </script>
 <!-- === Fin Cloud Sync === -->
-  <!-- Cargar listas oficiales una sola vez -->
-<script>
-(function seedOfficialRosters(){
-  if (window.__seededOfficialRosters__) return;
-  window.__seededOfficialRosters__ = true;
-
-  const make = (names)=> names.map((n,i)=>({ name:n.trim(), points:0, badges:[], order:i }));
-
-  const roster5A = make([
-    "VEGA","LUCÍA A.","AZAHARA","MARTÍN B.","LUCÍA","LEO","CRISTINA","JIMENA","PABLO","ALBA",
-    "MARC","MANUEL","ÁFRICA","YANIRA","ERIK DAMIAN","PABLO F","ÁLVARO","ABRIL","MATEO","PAU",
-    "JAVIER","MARCO AURELIO","MARCOS","ARIADNA","MARTÍN"
-  ]);
-
-  const roster5B = make([
-    "LUIS MIGUEL","SERGI","ALBA","CARLES","MARK","ISABEL","VERA","LUIS","INDIRA","MARCOS",
-    "CARMEN","JUAN","MARC","MARIO","VICENT","CARLA","MARTIN","ADAIA","YAGO","MARCOS R.",
-    "NAYARA","VARINIA","JOSÉ ANTONIO","ÁXEL","DANIEL","ZHI YUAN"
-  ]);
-
-  const roster6A = make([
-    "NICOLÁS","LEIRE","FERRÁN","LUCÍA","MANUEL","PABLO","RAFA","PAU H.","XAVI","YAIZA",
-    "MARTINA","MARTA","NEREA","PAU M.","ARIANA","ADRIÁN","ARIADNA","VEGA","MATIES","ENZO",
-    "NOA","MARC"
-  ]);
-
-  const roster6B = make([
-    "PABLO","ROCÍO","SOFÍA","DIDAC","CARLA B.","POL","CRISTOBAL","DANIELA","SANDRA","CARLA C.",
-    "IRENE","MARTINA","CHLOE","ALBERT","AITOR","JOANA","CLAUDIA","MATEO","NACHO","MARA",
-    "SISCO","FRAN","NOEMI","PAULA","RUBÉN","DAVID"
-  ]);
-
-  // Guardar en localStorage (la propia app subirá a la nube)
+   // Guardar en localStorage (la propia app subirá a la nube)
   localStorage.setItem('fantasy_5a_roster_v1', JSON.stringify(roster5A));
   localStorage.setItem('fantasy_5b_roster_v1', JSON.stringify(roster5B));
   localStorage.setItem('fantasy_6a_roster_v1', JSON.stringify(roster6A));
