@@ -193,12 +193,8 @@
           <img src="images/logo.png" alt="Logo" class="h-10"/>
           <h2 class="text-2xl font-bold text-gray-900">LIGA FANTASY NSS 25/26</h2>
         </div>
-       <div class="flex items-center gap-2">
-  <button onclick="goHome()" class="btn-primary px-4 py-1 rounded">Inicio</button>
-  <button id="teacherAccessBtn" class="bg-gray-900 text-white px-4 py-1 rounded hover:bg-black">
-    Acceso profes
-  </button>
-</div>
+        <button onclick="goHome()" class="btn-primary px-4 py-1 rounded">Inicio</button>
+      </div>
     </header>
 
  <!-- Pantalla de Selección (rediseñada) -->
@@ -2839,47 +2835,107 @@ window.addEventListener('beforeunload', () => { try { saveToCloud(); } catch {} 
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) { try { saveToCloud(); } catch {} }
 });
-<script>
-  // === Privacidad para clases con PIN ===
-  const PRIVATE_SECTIONS = new Set(['5a','5b','6a','6b']);
-  const TEACHER_PIN = '2580'; // <-- CAMBIA AQUÍ TU PIN
+</script>
+  <script>
+/* ========= PRIVADO CON PIN: CONFIG ========= */
+const PRIVATE_SECTIONS = new Set(['5a','5b','6a','6b']); // ids reales de tus secciones de clase
+const TEACHER_PIN = '2580'; // <-- CAMBIA TU PIN
+const UNLOCK_MINUTES = 45;
 
-  function isTeacherUnlocked(){
-    const v = sessionStorage.getItem('fantasy_teacher_until');
-    return v && Date.now() < parseInt(v,10);
-  }
-  function unlockTeacherSession(minutes=45){
-    sessionStorage.setItem('fantasy_teacher_until', String(Date.now() + minutes*60*1000));
-  }
-  function openPinModal(pendingSec=null){
-    const m = document.getElementById('pinModal');
-    m.classList.remove('hidden');
-    m.dataset.pending = pendingSec || '';
-    document.getElementById('pinError').textContent = '';
-    const input = document.getElementById('pinInput');
-    input.value = '';
-    setTimeout(()=> input.focus(), 0);
+/* ========= SESIÓN DE PROFES ========= */
+function isTeacherUnlocked(){
+  const v = sessionStorage.getItem('fantasy_teacher_until');
+  return v && Date.now() < parseInt(v, 10);
+}
+function unlockTeacherSession(minutes=UNLOCK_MINUTES){
+  sessionStorage.setItem('fantasy_teacher_until', String(Date.now() + minutes*60*1000));
+}
+
+/* ========= MODAL PIN ========= */
+function openPinModal(pendingSec=null){
+  const m = document.getElementById('pinModal');
+  if(!m){ console.warn('pinModal no encontrado'); return; }
+  m.classList.remove('hidden');
+  m.dataset.pending = pendingSec || '';
+  const err = document.getElementById('pinError');
+  if(err) err.textContent = '';
+  const input = document.getElementById('pinInput');
+  if(input){ input.value = ''; setTimeout(()=>input.focus(), 0); }
+}
+
+/* ========= GUARDIA GLOBAL (NO DEPENDE DE showSection) =========
+   Observa qué sección se muestra (quita 'hidden') y si es privada y NO hay
+   sesión de profe, la oculta de inmediato y pide el PIN. */
+(function guardiaGlobal(){
+  const main = document.querySelector('main');
+  if(!main) return;
+
+  // Helper: ¿hay una sección visible?
+  function getVisibleSection(){
+    return Array.from(main.querySelectorAll(':scope > section'))
+      .find(s => !s.classList.contains('hidden'));
   }
 
-  // ⚠️ Sobrescribe showSection después de tu definición original
+  // Primera comprobación por si ya está abierta una clase privada
+  setTimeout(()=>{
+    const vis = getVisibleSection();
+    if(vis && PRIVATE_SECTIONS.has(vis.id) && !isTeacherUnlocked()){
+      vis.classList.add('hidden');
+      openPinModal(vis.id);
+    }
+  }, 0);
+
+  // Observa cambios de clases/estilos en las secciones
+  const mo = new MutationObserver((mutations)=>{
+    for(const m of mutations){
+      if(m.type === 'attributes' && m.attributeName === 'class'){
+        const node = m.target;
+        if(node instanceof HTMLElement && node.tagName === 'SECTION'){
+          const isVisible = !node.classList.contains('hidden');
+          if(isVisible && PRIVATE_SECTIONS.has(node.id) && !isTeacherUnlocked()){
+            // Bloquear y pedir PIN
+            node.classList.add('hidden');
+            openPinModal(node.id);
+          }
+        }
+      }
+    }
+  });
+  mo.observe(main, { attributes: true, subtree: true, attributeFilter: ['class'] });
+})();
+
+/* ========= INYECTA BOTÓN "ACCESO PROFES" EN EL HEADER SIN ROMPER NADA ========= */
+document.addEventListener('DOMContentLoaded', ()=>{
+  // Intenta insertar el botón justo después del botón Inicio
+  const homeBtn = Array.from(document.querySelectorAll('header button'))
+    .find(b => b.textContent && b.textContent.trim().toLowerCase() === 'inicio');
+
+  if(homeBtn && !document.getElementById('teacherAccessBtn')){
+    homeBtn.insertAdjacentHTML('afterend', `
+      <button id="teacherAccessBtn"
+              class="bg-gray-900 text-white px-4 py-1 rounded hover:bg-black ml-2">
+        Acceso profes
+      </button>
+    `);
+  }
+
+  document.getElementById('teacherAccessBtn')?.addEventListener('click', ()=> openPinModal());
+});
+
+/* ========= OPCIONAL: PARCHEA showSection SI EXISTE (por si tu app lo usa) ========= */
+(function patchShowSection(){
+  const old = window.showSection;
   window.showSection = function(sec){
     if (PRIVATE_SECTIONS.has(sec) && !isTeacherUnlocked()){
       openPinModal(sec);
       return;
     }
-    document.querySelectorAll('main > section').forEach(s=>s.classList.add('hidden'));
-    document.getElementById('selector').classList.add('hidden');
-    document.getElementById('nav-top').classList.remove('hidden');
-    document.getElementById(sec).classList.remove('hidden');
+    if (typeof old === 'function') return old(sec);
   };
-
-  // Botón del header "Acceso profes"
-  document.addEventListener('DOMContentLoaded', ()=>{
-    document.getElementById('teacherAccessBtn')?.addEventListener('click', ()=> openPinModal());
-  });
+})();
 </script>
 
-<!-- Modal PIN profes -->
+<!-- ========= MODAL PIN ========= -->
 <div id="pinModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50">
   <div class="bg-white rounded-2xl p-6 w-[92%] max-w-sm shadow-xl">
     <h3 class="text-xl font-bold mb-1">Acceso profes</h3>
@@ -2896,37 +2952,45 @@ document.addEventListener('visibilitychange', () => {
       <button id="pinOk" class="px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700">Desbloquear</button>
     </div>
 
-    <p class="text-xs text-gray-500 mt-3">La sesión se mantiene desbloqueada 45 min en este dispositivo.</p>
+    <p class="text-xs text-gray-500 mt-3">La sesión se mantiene desbloqueada durante ${UNLOCK_MINUTES} min en esta pestaña.</p>
   </div>
 </div>
 
 <script>
-  // Conexiones del modal
-  (function(){
-    const modal = document.getElementById('pinModal');
-    const btnOk = document.getElementById('pinOk');
-    const btnCancel = document.getElementById('pinCancel');
-    const input = document.getElementById('pinInput');
-    const error = document.getElementById('pinError');
+/* ========= WIRE DEL MODAL ========= */
+(function(){
+  const modal = document.getElementById('pinModal');
+  const btnOk = document.getElementById('pinOk');
+  const btnCancel = document.getElementById('pinCancel');
+  const input = document.getElementById('pinInput');
+  const error = document.getElementById('pinError');
 
-    function close(){ modal.classList.add('hidden'); }
+  function close(){ modal.classList.add('hidden'); }
 
-    btnCancel.addEventListener('click', close);
-    modal.addEventListener('click', (e)=>{ if(e.target===modal) close(); });
-    input.addEventListener('keydown', (e)=>{ if(e.key==='Enter') btnOk.click(); });
+  btnCancel.addEventListener('click', close);
+  modal.addEventListener('click', (e)=>{ if(e.target===modal) close(); });
+  input.addEventListener('keydown', (e)=>{ if(e.key==='Enter') btnOk.click(); });
 
-    btnOk.addEventListener('click', ()=>{
-      const value = input.value.trim();
-      if(value === TEACHER_PIN){
-        unlockTeacherSession(45); // cambia 45 si quieres otra duración
-        const pending = modal.dataset.pending;
-        close();
-        if (pending) window.showSection(pending);
-      } else {
-        error.textContent = 'PIN incorrecto';
+  btnOk.addEventListener('click', ()=>{
+    const value = (input.value || '').trim();
+    if(value === TEACHER_PIN){
+      unlockTeacherSession();
+      const pending = modal.dataset.pending;
+      close();
+      if (pending) {
+        // Intenta mostrar la sección bloqueada después de desbloquear
+        const secEl = document.getElementById(pending);
+        if (secEl) {
+          // Oculta todo y muestra la sección pedida
+          document.querySelectorAll('main > section').forEach(s=>s.classList.add('hidden'));
+          secEl.classList.remove('hidden');
+        }
       }
-    });
-  })();
+    } else {
+      error.textContent = 'PIN incorrecto';
+    }
+  });
+})();
 </script>
 </body>
 </html>
