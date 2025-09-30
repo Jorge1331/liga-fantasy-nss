@@ -2553,13 +2553,11 @@
   </script>
   <!-- === Cloud Sync simple (Supabase + localStorage) === -->
 <script type="module">
-  // Usamos el cliente que ya inicializaste en <head> (window.supa)
-  const supa = window.supa;
-  const TABLE   = 'fantasy_state';
-  const ROW_ID  = 'singleton';
-  const METAKEY = 'fantasy_meta_v1'; // timestamp local para resolver conflictos
+  // ...deja lo que ya tienes arriba igual (supa, TABLE, ROW_ID, METAKEY)...
 
-  // --- UI: botón y barra de estado ---
+  let isApplyingFromCloud = false; // ⬅️ NUEVO: bandera para evitar bucles
+
+  // --- UI: botón y barra de estado (posición fija, no empuja layout) ---
   function ensureUI(){
     const headerRow = document.querySelector('header .max-w-6xl');
     if(!headerRow || document.getElementById('cloudStatusBar')) return;
@@ -2574,11 +2572,19 @@
     headerRow.appendChild(right);
     document.getElementById('syncBtn')?.addEventListener('click', manualSync);
 
-    // Barra de estado
+    // Barra fija (no mueve el layout)
     const statusBar = document.createElement('div');
     statusBar.id = 'cloudStatusBar';
-    statusBar.className = 'hidden text-sm px-4 py-2 text-center';
-    document.querySelector('header')?.insertAdjacentElement('afterend', statusBar);
+    statusBar.style.position = 'fixed';
+    statusBar.style.top = '56px';  // bajo el header
+    statusBar.style.left = '0';
+    statusBar.style.right = '0';
+    statusBar.style.zIndex = '50';
+    statusBar.style.pointerEvents = 'none';
+    statusBar.style.transition = 'opacity .25s ease';
+    statusBar.style.opacity = '0';
+    statusBar.className = 'text-sm px-4 py-2 text-center';
+    document.body.appendChild(statusBar);
   }
   function statusEl(){ return document.getElementById('cloudStatusBar'); }
   function showStatus(msg, type='info'){
@@ -2588,15 +2594,14 @@
       ok:    'bg-green-100 text-green-900',
       error: 'bg-red-100 text-red-900'
     };
-    el.className = `${styles[type]||styles.info} text-sm px-4 py-2 text-center`;
+    el.className = `text-sm px-4 py-2 text-center ${styles[type]||styles.info}`;
     el.textContent = msg;
-    el.classList.remove('hidden');
+    el.style.opacity = '1';
   }
   function tempStatus(msg, type='ok', ms=1500){
     showStatus(msg,type);
-    setTimeout(()=> statusEl()?.classList.add('hidden'), ms);
+    setTimeout(()=> { const el = statusEl(); if(el) el.style.opacity = '0'; }, ms);
   }
-
   // --- Utilidades de estado local agrupado ---
   const KEYS = {
     rosters: {
@@ -2648,19 +2653,23 @@
     return out;
   }
 
-  function applyStateToLocal(state){
+   function applyStateToLocal(state){
     if(!state) return;
+    isApplyingFromCloud = true; // ⬅️ evita que el interceptor dispare guardados
+
     const s = state;
     if(s.rosters) for(const [clazz,key] of Object.entries(KEYS.rosters)) jset(key, s.rosters[clazz]||[]);
     if(s.mvp)     for(const [clazz,key] of Object.entries(KEYS.mvp))     jset(key, s.mvp[clazz]||null);
     if(s.resets)  for(const [clazz,key] of Object.entries(KEYS.resets))  jset(key, s.resets[clazz]||null);
     if(Array.isArray(s.media)) jset(KEYS.media, s.media);
+
     bumpLocalTimestamp();
-    // Fuerza re-render de la sección visible (tu showSection ya hace el toggle necesario)
+    isApplyingFromCloud = false; // ⬅️ volvemos a permitir guardados
+
+    // Re-render de la sección visible
     const visible = Array.from(document.querySelectorAll('main > section')).find(s=>!s.classList.contains('hidden'));
     if(visible) window.showSection(visible.id);
   }
-
   // --- Cloud I/O ---
   async function loadCloudRow(){
     const { data, error } = await supa.from(TABLE)
@@ -2707,10 +2716,10 @@
   }
 
   // --- Guardado en nube al detectar cambios locales ---
-  let saveTimer = null;
+   let saveTimer = null;
   async function saveToCloudDebounced(){
     clearTimeout(saveTimer);
-    saveTimer = setTimeout(saveToCloud, 600);
+    saveTimer = setTimeout(saveToCloud, 1200); // antes: 600
   }
   async function saveToCloud(){
     try{
@@ -2728,20 +2737,34 @@
     }
   }
 
-  // Interceptar TODAS las escrituras locales de la app sin tocar tus módulos
+   // Interceptar escrituras en localStorage relacionadas con la app, sin bucles
   (function interceptLocalStorage(){
     const origSet = localStorage.setItem.bind(localStorage);
     localStorage.setItem = function(k,v){
       const r = origSet(k,v);
-      if(k && k.startsWith('fantasy_')) saveToCloudDebounced();
+
+      // No dispares nada si estamos aplicando desde la nube
+      if(isApplyingFromCloud) return r;
+
+      // Solo reaccionar a claves de la app (fantasy_) y si realmente cambió
+      if(k && k.startsWith('fantasy_')){
+        try{
+          const old = localStorage.getItem(k);
+          if(old !== v){
+            saveToCloudDebounced(); // sube con calma
+          }
+        }catch{
+          saveToCloudDebounced();
+        }
+      }
       return r;
     };
   })();
-
   // Hook al inicio de tu app: sincroniza primero y luego abre la UI
   (function hookStart(){
     const orig = window.startApp;
     window.startApp = async function(){
+      let isApplyingFromCloud = false; // bandera para evitar bucles
       ensureUI();
       try{
         // pequeño ping para “actividad” y prevenir pausa por inactividad
