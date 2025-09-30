@@ -2752,29 +2752,24 @@ const METAKEY = 'fantasy_meta_v1';
     }
   }
 
-   (function interceptLocalStorage(){
+   // Interceptar escrituras en localStorage relacionadas con la app, sin bucles
+(function interceptLocalStorage(){
   const origSet = localStorage.setItem.bind(localStorage);
   localStorage.setItem = function(k, v){
+    // 1) Leer el valor ANTES de escribir
+    let prev = null;
+    try { prev = localStorage.getItem(k); } catch {}
+
+    // 2) Escribir realmente
     const r = origSet(k, v);
 
-    // Si estás aplicando desde la nube, no dispares nada
+    // 3) Evitar bucle cuando aplicamos desde la nube
     if (isApplyingFromCloud) return r;
 
-    // Solo reaccionamos a claves de la app
-    if (k && k.startsWith('fantasy_')) {
-      try {
-        // Si realmente cambió, marcamos "hay cambios locales"
-        const old = localStorage.getItem(k);
-        if (old !== v) {
-          // 1) Marca inmediata: al iniciar, local >= cloud => NO te pisan
-          bumpLocalTimestamp();
-          // 2) Subida a nube con calma
-          saveToCloudDebounced();
-        }
-      } catch {
-        bumpLocalTimestamp();
-        saveToCloudDebounced();
-      }
+    // 4) Solo claves de la app y si realmente cambió
+    if (k && k.startsWith('fantasy_') && prev !== v) {
+      bumpLocalTimestamp();      // marca local como más reciente YA
+      saveToCloudDebounced();    // sube en segundo plano
     }
     return r;
   };
@@ -2806,6 +2801,8 @@ const METAKEY = 'fantasy_meta_v1';
 
   // Por si se entra directo sin pulsar “Entrar a la Liga”, preparamos la UI
   document.addEventListener('DOMContentLoaded', ensureUI);
+  window.addEventListener('beforeunload', () => { try { saveToCloud(); } catch {} });
+document.addEventListener('visibilitychange', () => { if (document.hidden) { try { saveToCloud(); } catch {} }});
 </script>
 <!-- === Fin Cloud Sync === -->
   <!-- Cargar listas oficiales una sola vez -->
