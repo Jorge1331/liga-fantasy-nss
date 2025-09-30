@@ -2724,7 +2724,7 @@ document.addEventListener('DOMContentLoaded', ensureUI);
     if(Array.isArray(s.media)) jset(KEYS.media, s.media);
 
     bumpLocalTimestamp();
-    isApplyingFromCloud = false; // ⬅️ volvemos a permitir guardados
+  
 
     // Re-render de la sección visible
     const visible = Array.from(document.querySelectorAll('main > section')).find(s=>!s.classList.contains('hidden'));
@@ -2774,7 +2774,6 @@ document.addEventListener('DOMContentLoaded', ensureUI);
       applyStateToLocal(cloudData);           // esto NO debe disparar gracias al flag
       setMetaSilently(cloudTs || Date.now()); // refleja el ts de nube sin disparar
     } finally {
-      isApplyingFromCloud = false;
     }
     tempStatus('⬇️ Datos más recientes descargados de la nube','ok');
   }
@@ -2856,29 +2855,31 @@ document.addEventListener('DOMContentLoaded', ensureUI);
     }
   }
 
-  // Por si se entra directo sin pulsar “Entrar a la Liga”, preparamos la UI
-  document.addEventListener('DOMContentLoaded', ensureUI);
-window.addEventListener('beforeunload', () => { try { saveToCloud(); } catch {} });
-document.addEventListener('visibilitychange', () => { if (document.hidden) { try { saveToCloud(); } catch {} }});
-</script>
-<!-- === Fin Cloud Sync === -->
-   // Guardar en localStorage (la propia app subirá a la nube)
-  localStorage.setItem('fantasy_5a_roster_v1', JSON.stringify(roster5A));
-  localStorage.setItem('fantasy_5b_roster_v1', JSON.stringify(roster5B));
-  localStorage.setItem('fantasy_6a_roster_v1', JSON.stringify(roster6A));
-  localStorage.setItem('fantasy_6b_roster_v1', JSON.stringify(roster6B));
+ // === UI: que siempre aparezcan los botones ===
+document.addEventListener('DOMContentLoaded', ensureUI);
 
-  // Resetear MVPs (opcional)
-  localStorage.removeItem('fantasy_5a_mvp_v1');
-  localStorage.removeItem('fantasy_5b_mvp_v1');
-  localStorage.removeItem('fantasy_6a_mvp_v1');
-  localStorage.removeItem('fantasy_6b_mvp_v1');
-
-  // Sello de tiempo local para que NO te los pise la nube
-  localStorage.setItem('fantasy_meta_v1', String(Date.now()));
-
-  console.log('✅ Listas oficiales cargadas. Entra a la Liga y verás los cambios.');
+// Hook de arranque: primero sincroniza y luego abre la app
+(function hookStart(){
+  const orig = window.startApp;
+  window.startApp = async function(){
+    ensureUI(); // pinta botones y barra ya
+    try{
+      await supa.from(TABLE).select('id').limit(1); // ping
+      await reconcile();                             // nube <-> local
+    }catch(e){
+      console.warn('No se pudo sincronizar al inicio (¿proyecto pausado?)', e);
+      tempStatus('⚠️ Nube no disponible. Usando copia local.','error',3000);
+    }
+    orig(); // abre tu UI
+  };
 })();
+
+// Guardado al salir/cambiar de pestaña (opcional pero útil)
+window.addEventListener('beforeunload', () => { try { saveToCloud(); } catch {} });
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { try { saveToCloud(); } catch {} }
+});
+
 </script>
 </body>
 </html>
