@@ -2569,12 +2569,23 @@ const METAKEY = 'fantasy_meta_v1';
     // Botón "Sincronizar ahora"
     const right = document.createElement('div');
     right.className = 'flex items-center gap-2';
-    right.innerHTML = `
-      <button id="syncBtn" class="bg-emerald-600 text-white text-sm px-3 py-1 rounded hover:bg-emerald-700 transition">
-        Sincronizar ahora
-      </button>`;
+   right.innerHTML = `
+  <button id="saveNowBtn" class="bg-indigo-600 text-white text-sm px-3 py-1 rounded hover:bg-indigo-700 transition">
+    Guardar ahora
+  </button>
+  <button id="syncBtn" class="bg-emerald-600 text-white text-sm px-3 py-1 rounded hover:bg-emerald-700 transition">
+    Sincronizar ahora
+  </button>`;
     headerRow.appendChild(right);
-    document.getElementById('syncBtn')?.addEventListener('click', manualSync);
+    document.getElementById('saveNowBtn')?.addEventListener('click', async () => {
+  try {
+    bumpLocalTimestamp();          // marca cambio inmediato
+    await saveToCloud();           // sube YA
+  } catch (e) {
+    console.warn(e);
+    tempStatus('❌ Error al guardar ahora', 'error', 2500);
+  }
+});
 
     // Barra fija (no mueve el layout)
     const statusBar = document.createElement('div');
@@ -2741,29 +2752,34 @@ const METAKEY = 'fantasy_meta_v1';
     }
   }
 
-   // Interceptar escrituras en localStorage relacionadas con la app, sin bucles
-  (function interceptLocalStorage(){
-    const origSet = localStorage.setItem.bind(localStorage);
-    localStorage.setItem = function(k,v){
-      const r = origSet(k,v);
+   (function interceptLocalStorage(){
+  const origSet = localStorage.setItem.bind(localStorage);
+  localStorage.setItem = function(k, v){
+    const r = origSet(k, v);
 
-      // No dispares nada si estamos aplicando desde la nube
-      if(isApplyingFromCloud) return r;
+    // Si estás aplicando desde la nube, no dispares nada
+    if (isApplyingFromCloud) return r;
 
-      // Solo reaccionar a claves de la app (fantasy_) y si realmente cambió
-      if(k && k.startsWith('fantasy_')){
-        try{
-          const old = localStorage.getItem(k);
-          if(old !== v){
-            saveToCloudDebounced(); // sube con calma
-          }
-        }catch{
+    // Solo reaccionamos a claves de la app
+    if (k && k.startsWith('fantasy_')) {
+      try {
+        // Si realmente cambió, marcamos "hay cambios locales"
+        const old = localStorage.getItem(k);
+        if (old !== v) {
+          // 1) Marca inmediata: al iniciar, local >= cloud => NO te pisan
+          bumpLocalTimestamp();
+          // 2) Subida a nube con calma
           saveToCloudDebounced();
         }
+      } catch {
+        bumpLocalTimestamp();
+        saveToCloudDebounced();
       }
-      return r;
-    };
-  })();
+    }
+    return r;
+  };
+})();
+
   // Hook al inicio de tu app: sincroniza primero y luego abre la UI
   (function hookStart(){
   const orig = window.startApp;
