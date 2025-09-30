@@ -437,40 +437,55 @@
     const end   = new Date(start); end.setDate(start.getDate()+4); end.setHours(23,59,59,999);
     return { now, start, end };
   }
-  function renderProgress(){
-    const bar   = $('#c5a-week-bar');
-    const label = $('#c5a-week-label');
-    const chips = $('#c5a-week-days')?.querySelectorAll('span') || [];
-    const alert = $('#c5a-reset-alert');
-    const daysSpan = $('#c5a-days-since');
+ // Añade esta helper dentro del IIFE (si no existe):
+function capitalize(str){ return str.charAt(0).toUpperCase() + str.slice(1); }
+// Sustituye COMPLETA tu función renderProgress() por esta:
+function renderProgress(){
+  const bar     = $('#c5a-week-bar');      // reutilizamos la barra existente
+  const label   = $('#c5a-week-label');    // reutilizamos el % existente
+  const titleEl = $('#c5a-period-title');  // nuevo título "Mes en curso"
+  const chips   = $('#c5a-week-days');     // ocultamos L-M-X-J-V
+  const alert   = $('#c5a-reset-alert');
+  const daysSpan= $('#c5a-days-since');
 
-    const { now, start, end } = getWeekBounds();
-    const total = Math.max(1, end - start);
-    let pct = Math.max(0, Math.min(1, (now - start)/total));
-    if(now > end) pct = 1;
-    if(bar)   bar.style.width = (pct*100).toFixed(0)+'%';
-    if(label) label.textContent = (pct*100).toFixed(0)+'%';
+  // === Mes en curso: anclado a OCT-2025 hasta 1 NOV 2025; luego dinámico ===
+  const now = new Date();
+  let start, end;
 
-    const dayIdx = Math.min(4, (now.getDay()+6)%7);
-    chips.forEach(el=>{
-      const i = parseInt(el.getAttribute('data-i'),10);
-      const active = (now > end) ? true : i<=dayIdx;
-      el.className = active
-        ? 'px-2 py-0.5 text-xs rounded bg-emerald-100 text-emerald-700'
-        : 'px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600';
-    });
-
-    if(!alert) return;
-    const last = getLastReset();
-    if(last){
-      const days = Math.floor((Date.now()-last)/(1000*60*60*24));
-      if(daysSpan) daysSpan.textContent = String(days);
-      alert.classList.toggle('hidden', days<7);
-    }else{
-      alert.classList.remove('hidden');
-      alert.innerHTML = 'Aún no se ha reiniciado esta clase. Usa <strong>“Reset puntos”</strong> al final de la semana.';
-    }
+  if (now < new Date(2025, 10, 1)) { // 1 nov 2025 (mes 10 porque empieza en 0)
+    start = new Date(2025, 9, 1, 0,0,0,0);          // 1 oct 2025
+    end   = new Date(2025,10, 0,23,59,59,999);      // 31 oct 2025
+  } else {
+    start = new Date(now.getFullYear(), now.getMonth(), 1, 0,0,0,0);
+    end   = new Date(now.getFullYear(), now.getMonth()+1, 0,23,59,59,999);
   }
+
+  const total = Math.max(1, end - start);
+  let pct = 0;
+  if (now <= start) pct = 0;
+  else if (now >= end) pct = 1;
+  else pct = (now - start) / total;
+
+  if (bar)   bar.style.width = (pct*100).toFixed(0)+'%';
+  if (label) label.textContent = (pct*100).toFixed(0)+'%';
+
+  const mesTxt = start.toLocaleDateString('es-ES', { month:'long', year:'numeric' });
+  if (titleEl) titleEl.textContent = `Mes en curso: ${capitalize(mesTxt)}`;
+
+  if (chips) chips.classList.add('hidden'); // ocultar L-M-X-J-V
+
+  // Aviso de reset: lo dejo igual que tenías
+  if(!alert) return;
+  const last = getLastReset();
+  if(last){
+    const days = Math.floor((Date.now()-last)/(1000*60*60*24));
+    if(daysSpan) daysSpan.textContent = String(days);
+    alert.classList.toggle('hidden', days<7);
+  }else{
+    alert.classList.remove('hidden');
+    alert.innerHTML = 'Aún no se ha reiniciado esta clase. Usa <strong>“Reset puntos”</strong> al final de la semana.';
+  }
+}
   /* --------------------------------------------- */
 
   /* ---------- Insignias / Badges ---------- */
@@ -894,40 +909,52 @@
     const end   = new Date(start); end.setDate(start.getDate()+4); end.setHours(23,59,59,999);
     return { now, start, end };
   }
-  function renderProgress(){
-    const bar   = $('#c5b-week-bar');
-    const label = $('#c5b-week-label');
-    const chips = $('#c5b-week-days')?.querySelectorAll('span') || [];
-    const alert = $('#c5b-reset-alert');
-    const daysSpan = $('#c5b-days-since');
+function capitalize(str){ return str.charAt(0).toUpperCase() + str.slice(1); }
 
-    const { now, start, end } = getWeekBounds();
-    const total = Math.max(1, end - start);
-    let pct = Math.max(0, Math.min(1, (now - start)/total));
-    if(now > end) pct = 1;
-    if(bar)   bar.style.width = (pct*100).toFixed(0)+'%';
-    if(label) label.textContent = (pct*100).toFixed(0)+'%';
+function renderProgress(){
+  const bar     = $('#c5b-week-bar');
+  const label   = $('#c5b-week-label');
+  const titleEl = $('#c5b-period-title');
+  const chips   = $('#c5b-week-days');
+  const alert   = $('#c5b-reset-alert');
+  const daysSpan= $('#c5b-days-since');
 
-    const dayIdx = Math.min(4, (now.getDay()+6)%7);
-    chips.forEach(el=>{
-      const i = parseInt(el.getAttribute('data-i'),10);
-      const active = (now > end) ? true : i<=dayIdx;
-      el.className = active
-        ? 'px-2 py-0.5 text-xs rounded bg-emerald-100 text-emerald-700'
-        : 'px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600';
-    });
+  const now = new Date();
+  let start, end;
 
-    if(!alert) return;
-    const last = getLastReset();
-    if(last){
-      const days = Math.floor((Date.now()-last)/(1000*60*60*24));
-      if(daysSpan) daysSpan.textContent = String(days);
-      alert.classList.toggle('hidden', days<7);
-    }else{
-      alert.classList.remove('hidden');
-      alert.innerHTML = 'Aún no se ha reiniciado esta clase. Usa <strong>“Reset puntos”</strong> al final de la semana.';
-    }
+  if (now < new Date(2025, 10, 1)) {
+    start = new Date(2025, 9, 1, 0,0,0,0);
+    end   = new Date(2025,10, 0,23,59,59,999);
+  } else {
+    start = new Date(now.getFullYear(), now.getMonth(), 1, 0,0,0,0);
+    end   = new Date(now.getFullYear(), now.getMonth()+1, 0,23,59,59,999);
   }
+
+  const total = Math.max(1, end - start);
+  let pct = 0;
+  if (now <= start) pct = 0;
+  else if (now >= end) pct = 1;
+  else pct = (now - start) / total;
+
+  if (bar)   bar.style.width = (pct*100).toFixed(0)+'%';
+  if (label) label.textContent = (pct*100).toFixed(0)+'%';
+
+  const mesTxt = start.toLocaleDateString('es-ES', { month:'long', year:'numeric' });
+  if (titleEl) titleEl.textContent = `Mes en curso: ${capitalize(mesTxt)}`;
+
+  if (chips) chips.classList.add('hidden');
+
+  if(!alert) return;
+  const last = getLastReset();
+  if(last){
+    const days = Math.floor((Date.now()-last)/(1000*60*60*24));
+    if(daysSpan) daysSpan.textContent = String(days);
+    alert.classList.toggle('hidden', days<7);
+  }else{
+    alert.classList.remove('hidden');
+    alert.innerHTML = 'Aún no se ha reiniciado esta clase. Usa <strong>“Reset puntos”</strong> al final de la semana.';
+  }
+}
 
   /* Insignias / Badges */
   function ensureBadges(){ roster.forEach(a=>{ if(!Array.isArray(a.badges)) a.badges = []; }); }
@@ -1298,40 +1325,51 @@
     const end   = new Date(start); end.setDate(start.getDate()+4); end.setHours(23,59,59,999);
     return { now, start, end };
   }
-  function renderProgress(){
-    const bar   = $('#c6a-week-bar');
-    const label = $('#c6a-week-label');
-    const chips = $('#c6a-week-days')?.querySelectorAll('span') || [];
-    const alert = $('#c6a-reset-alert');
-    const daysSpan = $('#c6a-days-since');
+  function capitalize(str){ return str.charAt(0).toUpperCase() + str.slice(1); }
+function renderProgress(){
+  const bar     = $('#c6a-week-bar');
+  const label   = $('#c6a-week-label');
+  const titleEl = $('#c6a-period-title');
+  const chips   = $('#c6a-week-days');
+  const alert   = $('#c6a-reset-alert');
+  const daysSpan= $('#c6a-days-since');
 
-    const { now, start, end } = getWeekBounds();
-    const total = Math.max(1, end - start);
-    let pct = Math.max(0, Math.min(1, (now - start)/total));
-    if(now > end) pct = 1;
-    if(bar)   bar.style.width = (pct*100).toFixed(0)+'%';
-    if(label) label.textContent = (pct*100).toFixed(0)+'%';
+  const now = new Date();
+  let start, end;
 
-    const dayIdx = Math.min(4, (now.getDay()+6)%7);
-    chips.forEach(el=>{
-      const i = parseInt(el.getAttribute('data-i'),10);
-      const active = (now > end) ? true : i<=dayIdx;
-      el.className = active
-        ? 'px-2 py-0.5 text-xs rounded bg-emerald-100 text-emerald-700'
-        : 'px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600';
-    });
-
-    if(!alert) return;
-    const last = getLastReset();
-    if(last){
-      const days = Math.floor((Date.now()-last)/(1000*60*60*24));
-      if(daysSpan) daysSpan.textContent = String(days);
-      alert.classList.toggle('hidden', days<7);
-    }else{
-      alert.classList.remove('hidden');
-      alert.innerHTML = 'Aún no se ha reiniciado esta clase. Usa <strong>“Reset puntos”</strong> al final de la semana.';
-    }
+  if (now < new Date(2025, 10, 1)) {
+    start = new Date(2025, 9, 1, 0,0,0,0);
+    end   = new Date(2025,10, 0,23,59,59,999);
+  } else {
+    start = new Date(now.getFullYear(), now.getMonth(), 1, 0,0,0,0);
+    end   = new Date(now.getFullYear(), now.getMonth()+1, 0,23,59,59,999);
   }
+
+  const total = Math.max(1, end - start);
+  let pct = 0;
+  if (now <= start) pct = 0;
+  else if (now >= end) pct = 1;
+  else pct = (now - start) / total;
+
+  if (bar)   bar.style.width = (pct*100).toFixed(0)+'%';
+  if (label) label.textContent = (pct*100).toFixed(0)+'%';
+
+  const mesTxt = start.toLocaleDateString('es-ES', { month:'long', year:'numeric' });
+  if (titleEl) titleEl.textContent = `Mes en curso: ${capitalize(mesTxt)}`;
+
+  if (chips) chips.classList.add('hidden');
+
+  if(!alert) return;
+  const last = getLastReset();
+  if(last){
+    const days = Math.floor((Date.now()-last)/(1000*60*60*24));
+    if(daysSpan) daysSpan.textContent = String(days);
+    alert.classList.toggle('hidden', days<7);
+  }else{
+    alert.classList.remove('hidden');
+    alert.innerHTML = 'Aún no se ha reiniciado esta clase. Usa <strong>“Reset puntos”</strong> al final de la semana.';
+  }
+}
 
   /* Insignias / Badges */
   function ensureBadges(){ roster.forEach(a=>{ if(!Array.isArray(a.badges)) a.badges = []; }); }
@@ -1702,41 +1740,52 @@
     const end   = new Date(start); end.setDate(start.getDate()+4); end.setHours(23,59,59,999);
     return { now, start, end };
   }
-  function renderProgress(){
-    const bar   = $('#c6b-week-bar');
-    const label = $('#c6b-week-label');
-    const chips = $('#c6b-week-days')?.querySelectorAll('span') || [];
-    const alert = $('#c6b-reset-alert');
-    const daysSpan = $('#c6b-days-since');
+  function capitalize(str){ return str.charAt(0).toUpperCase() + str.slice(1); }
 
-    const { now, start, end } = getWeekBounds();
-    const total = Math.max(1, end - start);
-    let pct = Math.max(0, Math.min(1, (now - start)/total));
-    if(now > end) pct = 1;
-    if(bar)   bar.style.width = (pct*100).toFixed(0)+'%';
-    if(label) label.textContent = (pct*100).toFixed(0)+'%';
+function renderProgress(){
+  const bar     = $('#c6b-week-bar');
+  const label   = $('#c6b-week-label');
+  const titleEl = $('#c6b-period-title');
+  const chips   = $('#c6b-week-days');
+  const alert   = $('#c6b-reset-alert');
+  const daysSpan= $('#c6b-days-since');
 
-    const dayIdx = Math.min(4, (now.getDay()+6)%7);
-    chips.forEach(el=>{
-      const i = parseInt(el.getAttribute('data-i'),10);
-      const active = (now > end) ? true : i<=dayIdx;
-      el.className = active
-        ? 'px-2 py-0.5 text-xs rounded bg-emerald-100 text-emerald-700'
-        : 'px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600';
-    });
+  const now = new Date();
+  let start, end;
 
-    if(!alert) return;
-    const last = getLastReset();
-    if(last){
-      const days = Math.floor((Date.now()-last)/(1000*60*60*24));
-      if(daysSpan) daysSpan.textContent = String(days);
-      alert.classList.toggle('hidden', days<7);
-    }else{
-      alert.classList.remove('hidden');
-      alert.innerHTML = 'Aún no se ha reiniciado esta clase. Usa <strong>“Reset puntos”</strong> al final de la semana.';
-    }
+  if (now < new Date(2025, 10, 1)) {
+    start = new Date(2025, 9, 1, 0,0,0,0);
+    end   = new Date(2025,10, 0,23,59,59,999);
+  } else {
+    start = new Date(now.getFullYear(), now.getMonth(), 1, 0,0,0,0);
+    end   = new Date(now.getFullYear(), now.getMonth()+1, 0,23,59,59,999);
   }
 
+  const total = Math.max(1, end - start);
+  let pct = 0;
+  if (now <= start) pct = 0;
+  else if (now >= end) pct = 1;
+  else pct = (now - start) / total;
+
+  if (bar)   bar.style.width = (pct*100).toFixed(0)+'%';
+  if (label) label.textContent = (pct*100).toFixed(0)+'%';
+
+  const mesTxt = start.toLocaleDateString('es-ES', { month:'long', year:'numeric' });
+  if (titleEl) titleEl.textContent = `Mes en curso: ${capitalize(mesTxt)}`;
+
+  if (chips) chips.classList.add('hidden');
+
+  if(!alert) return;
+  const last = getLastReset();
+  if(last){
+    const days = Math.floor((Date.now()-last)/(1000*60*60*24));
+    if(daysSpan) daysSpan.textContent = String(days);
+    alert.classList.toggle('hidden', days<7);
+  }else{
+    alert.classList.remove('hidden');
+    alert.innerHTML = 'Aún no se ha reiniciado esta clase. Usa <strong>“Reset puntos”</strong> al final de la semana.';
+  }
+}
   /* Insignias / Badges */
   function ensureBadges(){ roster.forEach(a=>{ if(!Array.isArray(a.badges)) a.badges = []; }); }
   const BADGE_TYPES = [
