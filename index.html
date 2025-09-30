@@ -197,7 +197,7 @@
       </div>
     </header>
 
-    <!-- Pantalla de Selección (rediseñada) -->
+ <!-- Pantalla de Selección (rediseñada) -->
     <section id="selector"
       class="selector-surface flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 p-6 place-items-center">
 
@@ -413,7 +413,7 @@
   /* ----------------- Storage ----------------- */
   function load(){
     try{ const raw = localStorage.getItem(KEY); if(raw) return JSON.parse(raw); }catch(e){}
-    return defaultNames.map((n,i)=>({ name:n, points:0, order:i }));
+    return defaultNames.map(n=>({ name:n, points:0 }));
   }
   function save(){ localStorage.setItem(KEY, JSON.stringify(roster)); }
 
@@ -474,11 +474,7 @@
   /* --------------------------------------------- */
 
   /* ---------- Insignias / Badges ---------- */
- function ensureOrder(){ roster.forEach((a,i)=>{ if(typeof a.order!=='number') a.order = i; }); }
-  let roster = load();
-let mvp    = loadMvp();
-ensureBadges();
-ensureOrder(); // ⬅️ nuevo
+  function ensureBadges(){ roster.forEach(a=>{ if(!Array.isArray(a.badges)) a.badges = []; }); }
   const BADGE_TYPES = [
     { key:'constancia',    icon:'⭐', label:'Constancia' },
     { key:'companierismo', icon:'🤝', label:'Compañerismo' },
@@ -581,9 +577,7 @@ ensureOrder(); // ⬅️ nuevo
   ensureBadges();
 
   /* --------------- Render helpers --------------- */
- function sortRoster(){
-  roster.sort((a,b)=> (b.points - a.points) || ((a.order ?? 0) - (b.order ?? 0)));
-}
+  function sortRoster(){ roster.sort((a,b)=> b.points - a.points || a.name.localeCompare(b.name)); }
   function stats(){
     const count = roster.length;
     const total = roster.reduce((s,a)=>s+a.points,0);
@@ -674,7 +668,7 @@ ensureOrder(); // ⬅️ nuevo
   if(resetBtn){
     resetBtn.addEventListener('click', ()=>{
       if(confirm('¿Seguro que quieres poner a 0 todos los puntos de 5ºA?')){
-        roster = roster.map(a=>({ name:a.name, points:0, badges:[], order:a.order }));
+        roster = roster.map(a=>({name:a.name, points:0, badges:[]}));
         mvp=null; save(); saveMvp(null);
         setLastReset(Date.now());
         renderAll();
@@ -712,7 +706,7 @@ ensureOrder(); // ⬅️ nuevo
     edApply.addEventListener('click', ()=>{
       const lines = $('#c5a-textarea').value.split('\n').map(s=>s.trim()).filter(Boolean);
       if(!lines.length) return;
-      roster = lines.map((n,i)=>({ name:n, points:0, badges:[], order:i }));
+      roster = lines.map(n=>({ name:n, points:0, badges:[] }));
       mvp=null; save(); saveMvp(null);
       editor.classList.add('hidden'); renderAll();
     });
