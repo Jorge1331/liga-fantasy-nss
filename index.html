@@ -413,7 +413,7 @@
   /* ----------------- Storage ----------------- */
   function load(){
     try{ const raw = localStorage.getItem(KEY); if(raw) return JSON.parse(raw); }catch(e){}
-    return defaultNames.map(n=>({ name:n, points:0 }));
+    return defaultNames.map((n,i)=>({ name:n, points:0, order:i }));
   }
   function save(){ localStorage.setItem(KEY, JSON.stringify(roster)); }
 
@@ -474,7 +474,11 @@
   /* --------------------------------------------- */
 
   /* ---------- Insignias / Badges ---------- */
-  function ensureBadges(){ roster.forEach(a=>{ if(!Array.isArray(a.badges)) a.badges = []; }); }
+ function ensureOrder(){ roster.forEach((a,i)=>{ if(typeof a.order!=='number') a.order = i; }); }
+  let roster = load();
+let mvp    = loadMvp();
+ensureBadges();
+ensureOrder(); // ⬅️ nuevo
   const BADGE_TYPES = [
     { key:'constancia',    icon:'⭐', label:'Constancia' },
     { key:'companierismo', icon:'🤝', label:'Compañerismo' },
@@ -577,7 +581,9 @@
   ensureBadges();
 
   /* --------------- Render helpers --------------- */
-  function sortRoster(){ roster.sort((a,b)=> b.points - a.points || a.name.localeCompare(b.name)); }
+ function sortRoster(){
+  roster.sort((a,b)=> (b.points - a.points) || ((a.order ?? 0) - (b.order ?? 0)));
+}
   function stats(){
     const count = roster.length;
     const total = roster.reduce((s,a)=>s+a.points,0);
@@ -668,7 +674,7 @@
   if(resetBtn){
     resetBtn.addEventListener('click', ()=>{
       if(confirm('¿Seguro que quieres poner a 0 todos los puntos de 5ºA?')){
-        roster = roster.map(a=>({name:a.name, points:0, badges:[]}));
+        roster = roster.map(a=>({ name:a.name, points:0, badges:[], order:a.order }));
         mvp=null; save(); saveMvp(null);
         setLastReset(Date.now());
         renderAll();
@@ -706,7 +712,7 @@
     edApply.addEventListener('click', ()=>{
       const lines = $('#c5a-textarea').value.split('\n').map(s=>s.trim()).filter(Boolean);
       if(!lines.length) return;
-      roster = lines.map(n=>({ name:n, points:0, badges:[] }));
+      roster = lines.map((n,i)=>({ name:n, points:0, badges:[], order:i }));
       mvp=null; save(); saveMvp(null);
       editor.classList.add('hidden'); renderAll();
     });
@@ -2808,5 +2814,55 @@ const METAKEY = 'fantasy_meta_v1';
   document.addEventListener('DOMContentLoaded', ensureUI);
 </script>
 <!-- === Fin Cloud Sync === -->
+  <!-- Cargar listas oficiales una sola vez -->
+<script>
+(function seedOfficialRosters(){
+  if (window.__seededOfficialRosters__) return;
+  window.__seededOfficialRosters__ = true;
+
+  const make = (names)=> names.map((n,i)=>({ name:n.trim(), points:0, badges:[], order:i }));
+
+  const roster5A = make([
+    "VEGA","LUCÍA A.","AZAHARA","MARTÍN B.","LUCÍA","LEO","CRISTINA","JIMENA","PABLO","ALBA",
+    "MARC","MANUEL","ÁFRICA","YANIRA","ERIK DAMIAN","PABLO F","ÁLVARO","ABRIL","MATEO","PAU",
+    "JAVIER","MARCO AURELIO","MARCOS","ARIADNA","MARTÍN"
+  ]);
+
+  const roster5B = make([
+    "LUIS MIGUEL","SERGI","ALBA","CARLES","MARK","ISABEL","VERA","LUIS","INDIRA","MARCOS",
+    "CARMEN","JUAN","MARC","MARIO","VICENT","CARLA","MARTIN","ADAIA","YAGO","MARCOS R.",
+    "NAYARA","VARINIA","JOSÉ ANTONIO","ÁXEL","DANIEL","ZHI YUAN"
+  ]);
+
+  const roster6A = make([
+    "NICOLÁS","LEIRE","FERRÁN","LUCÍA","MANUEL","PABLO","RAFA","PAU H.","XAVI","YAIZA",
+    "MARTINA","MARTA","NEREA","PAU M.","ARIANA","ADRIÁN","ARIADNA","VEGA","MATIES","ENZO",
+    "NOA","MARC"
+  ]);
+
+  const roster6B = make([
+    "PABLO","ROCÍO","SOFÍA","DIDAC","CARLA B.","POL","CRISTOBAL","DANIELA","SANDRA","CARLA C.",
+    "IRENE","MARTINA","CHLOE","ALBERT","AITOR","JOANA","CLAUDIA","MATEO","NACHO","MARA",
+    "SISCO","FRAN","NOEMI","PAULA","RUBÉN","DAVID"
+  ]);
+
+  // Guardar en localStorage (la propia app subirá a la nube)
+  localStorage.setItem('fantasy_5a_roster_v1', JSON.stringify(roster5A));
+  localStorage.setItem('fantasy_5b_roster_v1', JSON.stringify(roster5B));
+  localStorage.setItem('fantasy_6a_roster_v1', JSON.stringify(roster6A));
+  localStorage.setItem('fantasy_6b_roster_v1', JSON.stringify(roster6B));
+
+  // Resetear MVPs (opcional)
+  localStorage.removeItem('fantasy_5a_mvp_v1');
+  localStorage.removeItem('fantasy_5b_mvp_v1');
+  localStorage.removeItem('fantasy_6a_mvp_v1');
+  localStorage.removeItem('fantasy_6b_mvp_v1');
+
+  // Sello de tiempo local para que NO te los pise la nube
+  localStorage.setItem('fantasy_meta_v1', String(Date.now()));
+
+  console.log('✅ Listas oficiales cargadas. Entra a la Liga y verás los cambios.');
+})();
+</script>
 </body>
 </html>
