@@ -239,17 +239,14 @@
     </section>
 
     <!-- Navegación superior clásica -->
-    <nav id="nav-top" class="hidden bg-gray-200">
-      <div class="max-w-6xl mx-auto flex flex-wrap justify-center gap-2 py-2">
-        <button class="tab-btn btn-primary px-4 py-1 rounded" onclick="showSection('5a')">5ºA</button>
-        <button class="tab-btn btn-primary px-4 py-1 rounded" onclick="showSection('5b')">5ºB</button>
-        <button class="tab-btn btn-primary px-4 py-1 rounded" onclick="showSection('6a')">6ºA</button>
-        <button class="tab-btn btn-primary px-4 py-1 rounded" onclick="showSection('6b')">6ºB</button>
-        <button class="tab-btn bg-gray-800 text-white px-4 py-1 rounded" onclick="showSection('objetivos')">Objetivos</button>
-        <button class="tab-btn bg-gray-800 text-white px-4 py-1 rounded" onclick="showSection('recompensas')">Recompensas</button>
-        <button class="tab-btn bg-orange-600 text-white px-4 py-1 rounded" onclick="showSection('entrevistas')">Entrevistas</button>
-      </div>
-    </nav>
+    <!-- Navegación superior (solo secciones globales) -->
+<nav id="nav-top" class="hidden bg-gray-200">
+  <div class="max-w-6xl mx-auto flex flex-wrap justify-center gap-2 py-2">
+    <button class="tab-btn bg-gray-800 text-white px-4 py-1 rounded" onclick="showSection('objetivos')">Objetivos</button>
+    <button class="tab-btn bg-gray-800 text-white px-4 py-1 rounded" onclick="showSection('recompensas')">Recompensas</button>
+    <button class="tab-btn bg-orange-600 text-white px-4 py-1 rounded" onclick="showSection('entrevistas')">Entrevistas</button>
+  </div>
+</nav>
     <!-- Contenido -->
     <main class="flex-1 max-w-6xl mx-auto w-full p-4">
    <section id="5a" class="hidden">
