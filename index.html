@@ -2934,32 +2934,63 @@ document.addEventListener('DOMContentLoaded', ()=>{
   const errLbl  = document.getElementById('pinErrorPage');
   const okMsg   = document.getElementById('pinSuccessPage');
 
-  function goToPendingOrHome(){
-    const pending = sessionStorage.getItem(PENDING_SEC_KEY);
-    if (pending){
-      sessionStorage.removeItem(PENDING_SEC_KEY);
-      // Creamos pase y vamos DIRECTO a la clase pedida
-      setOneShotUnlock();
-      if(okMsg) okMsg.classList.remove('hidden');
-      if (typeof window.showSection === 'function'){
-        // pequeñísimo delay para que se vea el tick verde y cambie de vista suave
-        setTimeout(()=> window.showSection(pending), 150);
-      }
-    } else {
-      // No había pendiente → solo creamos pase y volvemos a Inicio
-      setOneShotUnlock();
-      if(okMsg) okMsg.classList.remove('hidden');
-      if (typeof window.goHome === 'function'){
-        setTimeout(()=> window.goHome(), 150);
-      }
-    }
+  // === Navegación robusta a una sección de clase (intenta 3 caminos)
+function navToSection(sec){
+  // 1) Si existe showSection original
+  if (typeof window.showSection === 'function') {
+    try { window.showSection(sec); return true; } catch(e){}
   }
+
+  // 2) Simular click en la tarjeta del selector que apunte a esa sección
+  const card = Array.from(document.querySelectorAll('#selector button, #selector a'))
+    .find(el => {
+      const oc = (el.getAttribute('onclick')||'');
+      return oc.includes(`'${sec}'`) || oc.includes(`("${sec}")`) ||
+             el.dataset?.target === sec || (el.hash === `#${sec}`);
+    });
+  if (card) { card.click(); return true; }
+
+  // 3) Mostrar manualmente la sección en el DOM
+  const target = document.getElementById(sec);
+  if (target){
+    document.querySelectorAll('main > section').forEach(s=>s.classList.add('hidden'));
+    document.getElementById('selector')?.classList.add('hidden');
+    document.getElementById('nav-top')?.classList.remove('hidden');
+    target.classList.remove('hidden');
+    // Dispara un evento por si alguna clase necesita re-render
+    target.dispatchEvent(new Event('fantasy:show'));
+    return true;
+  }
+  return false;
+}
+
+// === Tras validar el PIN: crea el pase y navega
+function afterPinOk(){
+  const pending = sessionStorage.getItem('fantasy_pending_section');
+  // Creamos el pase one-shot
+  sessionStorage.setItem('fantasy_teacher_oneshot','1');
+
+  if (pending){
+    sessionStorage.removeItem('fantasy_pending_section');
+    setTimeout(()=>{ 
+      // Consumimos al entrar (ver guardia de abajo)
+      if (!navToSection(pending)) {
+        // plan B: inicio si no encontró destino
+        if (typeof window.goHome === 'function') window.goHome();
+      }
+    }, 120);
+  } else {
+    // Sin pendiente: te devuelvo al inicio con el pase listo
+    if (typeof window.goHome === 'function') setTimeout(()=>window.goHome(), 120);
+  }
+}
 
   const submit = ()=>{
     const value = (input?.value || '').trim();
     if(value === TEACHER_PIN){
       if(errLbl) errLbl.textContent = '';
-      goToPendingOrHome();
+     // ahora:
+afterPinOk();
     } else {
       if(okMsg)  okMsg.classList.add('hidden');
       if(errLbl) errLbl.textContent = 'PIN incorrecto';
@@ -2974,22 +3005,46 @@ document.addEventListener('DOMContentLoaded', ()=>{
    - Si alguien muestra una clase privada manipulando el DOM sin showSection,
      la ocultamos al instante y redirigimos a Acceso tutores guardando la pendiente. */
 (function guardByVisibility(){
+  const PRIVATE_SECTIONS = new Set(['5a','5b','6a','6b']); // asegúrate de que coincide con tus IDs
   const main = document.querySelector('main');
   if(!main) return;
+
+  function hasOneShot(){ return sessionStorage.getItem('fantasy_teacher_oneshot') === '1'; }
+  function consumeOneShot(){ if(!hasOneShot()) return false; sessionStorage.removeItem('fantasy_teacher_oneshot'); return true; }
+
+  function enforce(el){
+    if (!PRIVATE_SECTIONS.has(el.id)) return;
+
+    // Si aparece una clase privada…
+    if (hasOneShot()){
+      // …permitimos y CONSUMIMOS el pase aquí
+      consumeOneShot();
+      return;
+    }
+    // …si no hay pase, ocultamos y mandamos a “Acceso tutores”
+    el.classList.add('hidden');
+    document.querySelectorAll('main > section').forEach(s=>s.classList.add('hidden'));
+    document.getElementById('acceso-profes')?.classList.remove('hidden');
+    // guardamos pendiente si no estaba ya
+    if (!sessionStorage.getItem('fantasy_pending_section')) {
+      sessionStorage.setItem('fantasy_pending_section', el.id);
+    }
+  }
+
+  // Chequeo inicial
+  setTimeout(()=>{
+    const visible = Array.from(main.querySelectorAll(':scope > section')).find(s=>!s.classList.contains('hidden'));
+    if(visible) enforce(visible);
+  }, 0);
+
+  // Observa cambios de visibilidad
   const mo = new MutationObserver((mutations)=>{
     for(const m of mutations){
       if(m.type==='attributes' && m.attributeName==='class'){
         const el = m.target;
-        if(!(el instanceof HTMLElement)) continue;
-        if(el.tagName !== 'SECTION') continue;
-        const isVisible = !el.classList.contains('hidden');
-        if(isVisible && PRIVATE_SECTIONS.has(el.id)){
-          // Si aparece una clase sin pase, cortamos y pedimos PIN
-          if (!hasOneShotUnlock()){
-            sessionStorage.setItem(PENDING_SEC_KEY, el.id);
-            el.classList.add('hidden');
-            document.getElementById('acceso-profes')?.classList.remove('hidden');
-          }
+        if(el instanceof HTMLElement && el.tagName==='SECTION'){
+          const isVisible = !el.classList.contains('hidden');
+          if (isVisible) enforce(el);
         }
       }
     }
