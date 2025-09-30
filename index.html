@@ -2554,6 +2554,10 @@
   <!-- === Cloud Sync simple (Supabase + localStorage) === -->
 <script type="module">
   // ...deja lo que ya tienes arriba igual (supa, TABLE, ROW_ID, METAKEY)...
+// Constantes del estado en la nube
+const TABLE   = 'fantasy_state';
+const ROW_ID  = 'singleton';
+const METAKEY = 'fantasy_meta_v1';
 
   let isApplyingFromCloud = false; // ⬅️ NUEVO: bandera para evitar bucles
 
@@ -2762,21 +2766,19 @@
   })();
   // Hook al inicio de tu app: sincroniza primero y luego abre la UI
   (function hookStart(){
-    const orig = window.startApp;
-    window.startApp = async function(){
-      let isApplyingFromCloud = false; // bandera para evitar bucles
-      ensureUI();
-      try{
-        // pequeño ping para “actividad” y prevenir pausa por inactividad
-        await supa.from(TABLE).select('id').limit(1);
-        await reconcile();
-      }catch(e){
-        console.warn('No se pudo sincronizar al inicio (¿proyecto pausado?)', e);
-        tempStatus('⚠️ Nube no disponible. Usando copia local.','error', 3000);
-      }
-      orig();
-    };
-  })();
+  const orig = window.startApp;
+  window.startApp = async function(){
+    ensureUI();
+    try{
+      await supa.from(TABLE).select('id').limit(1);
+      await reconcile();
+    }catch(e){
+      console.warn('No se pudo sincronizar al inicio (¿proyecto pausado?)', e);
+      tempStatus('⚠️ Nube no disponible. Usando copia local.','error', 3000);
+    }
+    orig();
+  };
+})();
 
   // Botón manual
   async function manualSync(){
