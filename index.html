@@ -2551,5 +2551,221 @@
       document.getElementById('nav-top').classList.add('hidden');
     }
   </script>
+  <!-- === Cloud Sync simple (Supabase + localStorage) === -->
+<script type="module">
+  // Usamos el cliente que ya inicializaste en <head> (window.supa)
+  const supa = window.supa;
+  const TABLE   = 'fantasy_state';
+  const ROW_ID  = 'singleton';
+  const METAKEY = 'fantasy_meta_v1'; // timestamp local para resolver conflictos
+
+  // --- UI: botón y barra de estado ---
+  function ensureUI(){
+    const headerRow = document.querySelector('header .max-w-6xl');
+    if(!headerRow || document.getElementById('cloudStatusBar')) return;
+
+    // Botón "Sincronizar ahora"
+    const right = document.createElement('div');
+    right.className = 'flex items-center gap-2';
+    right.innerHTML = `
+      <button id="syncBtn" class="bg-emerald-600 text-white text-sm px-3 py-1 rounded hover:bg-emerald-700 transition">
+        Sincronizar ahora
+      </button>`;
+    headerRow.appendChild(right);
+    document.getElementById('syncBtn')?.addEventListener('click', manualSync);
+
+    // Barra de estado
+    const statusBar = document.createElement('div');
+    statusBar.id = 'cloudStatusBar';
+    statusBar.className = 'hidden text-sm px-4 py-2 text-center';
+    document.querySelector('header')?.insertAdjacentElement('afterend', statusBar);
+  }
+  function statusEl(){ return document.getElementById('cloudStatusBar'); }
+  function showStatus(msg, type='info'){
+    const el = statusEl(); if(!el) return;
+    const styles = {
+      info:  'bg-yellow-100 text-yellow-900',
+      ok:    'bg-green-100 text-green-900',
+      error: 'bg-red-100 text-red-900'
+    };
+    el.className = `${styles[type]||styles.info} text-sm px-4 py-2 text-center`;
+    el.textContent = msg;
+    el.classList.remove('hidden');
+  }
+  function tempStatus(msg, type='ok', ms=1500){
+    showStatus(msg,type);
+    setTimeout(()=> statusEl()?.classList.add('hidden'), ms);
+  }
+
+  // --- Utilidades de estado local agrupado ---
+  const KEYS = {
+    rosters: {
+      '5A': 'fantasy_5a_roster_v1',
+      '5B': 'fantasy_5b_roster_v1',
+      '6A': 'fantasy_6a_roster_v1',
+      '6B': 'fantasy_6b_roster_v1',
+    },
+    mvp: {
+      '5A': 'fantasy_5a_mvp_v1',
+      '5B': 'fantasy_5b_mvp_v1',
+      '6A': 'fantasy_6a_mvp_v1',
+      '6B': 'fantasy_6b_mvp_v1',
+    },
+    resets: {
+      '5A': 'fantasy_5a_last_reset_v1',
+      '5B': 'fantasy_5b_last_reset_v1',
+      '6A': 'fantasy_6a_last_reset_v1',
+      '6B': 'fantasy_6b_last_reset_v1',
+    },
+    media: 'fantasy_media_v1'
+  };
+
+  const jget = (k, def=null) => {
+    try{ const raw = localStorage.getItem(k); return raw ? JSON.parse(raw) : def; }catch{ return def; }
+  };
+  const jset = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+
+  function getLocalTimestamp(){
+    const v = localStorage.getItem(METAKEY);
+    return v? parseInt(v,10) : 0;
+  }
+  function bumpLocalTimestamp(){
+    localStorage.setItem(METAKEY, String(Date.now()));
+  }
+
+  function collectLocalState(){
+    const out = {
+      v:2,
+      _meta: { updatedAt: new Date(getLocalTimestamp() || Date.now()).toISOString() },
+      rosters: {},
+      mvp: {},
+      resets: {},
+      media: jget(KEYS.media, [])
+    };
+    for(const [clazz,key] of Object.entries(KEYS.rosters)) out.rosters[clazz] = jget(key, []);
+    for(const [clazz,key] of Object.entries(KEYS.mvp))     out.mvp[clazz]     = jget(key, null);
+    for(const [clazz,key] of Object.entries(KEYS.resets))  out.resets[clazz]  = jget(key, null);
+    return out;
+  }
+
+  function applyStateToLocal(state){
+    if(!state) return;
+    const s = state;
+    if(s.rosters) for(const [clazz,key] of Object.entries(KEYS.rosters)) jset(key, s.rosters[clazz]||[]);
+    if(s.mvp)     for(const [clazz,key] of Object.entries(KEYS.mvp))     jset(key, s.mvp[clazz]||null);
+    if(s.resets)  for(const [clazz,key] of Object.entries(KEYS.resets))  jset(key, s.resets[clazz]||null);
+    if(Array.isArray(s.media)) jset(KEYS.media, s.media);
+    bumpLocalTimestamp();
+    // Fuerza re-render de la sección visible (tu showSection ya hace el toggle necesario)
+    const visible = Array.from(document.querySelectorAll('main > section')).find(s=>!s.classList.contains('hidden'));
+    if(visible) window.showSection(visible.id);
+  }
+
+  // --- Cloud I/O ---
+  async function loadCloudRow(){
+    const { data, error } = await supa.from(TABLE)
+      .select('data, updated_at')
+      .eq('id', ROW_ID)
+      .maybeSingle();
+    if(error) throw error;
+    return data; // puede ser null
+  }
+
+  async function upsertCloud(dataObj){
+    const payload = { id: ROW_ID, data: dataObj, updated_at: new Date().toISOString() };
+    const { error } = await supa.from(TABLE).upsert(payload).eq('id', ROW_ID);
+    if(error) throw error;
+  }
+
+  // --- Reconciliación: gana lo más reciente ---
+  async function reconcile(){
+    showStatus('Sincronizando…','info');
+    const localTs = getLocalTimestamp();
+    const cloud = await loadCloudRow(); // {data, updated_at} o null
+
+    if(!cloud){
+      // No hay fila en la nube: subimos todo lo local
+      bumpLocalTimestamp();
+      await upsertCloud(collectLocalState());
+      tempStatus('✅ Nube inicializada con tus datos locales','ok');
+      return;
+    }
+
+    const cloudData = cloud.data || {};
+    const cloudTs = new Date(cloud.updated_at || cloudData?._meta?.updatedAt || 0).getTime();
+
+    if(localTs >= cloudTs){
+      // Local más reciente => subir
+      bumpLocalTimestamp();
+      await upsertCloud(collectLocalState());
+      tempStatus('☁️ Cambios locales subidos a la nube','ok');
+    }else{
+      // Nube más reciente => descargar
+      applyStateToLocal(cloudData);
+      tempStatus('⬇️ Datos más recientes descargados de la nube','ok');
+    }
+  }
+
+  // --- Guardado en nube al detectar cambios locales ---
+  let saveTimer = null;
+  async function saveToCloudDebounced(){
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(saveToCloud, 600);
+  }
+  async function saveToCloud(){
+    try{
+      bumpLocalTimestamp();
+      showStatus('Guardando en la nube…','info');
+      const snapshot = collectLocalState();
+      const { error } = await supa.from(TABLE)
+        .update({ data: snapshot, updated_at: new Date().toISOString() })
+        .eq('id', ROW_ID);
+      if(error) throw error;
+      tempStatus('💾 Cambios guardados en la nube','ok');
+    }catch(err){
+      console.warn('Supabase save error', err);
+      tempStatus('❌ Error al guardar en la nube. Copia local activa.','error', 2500);
+    }
+  }
+
+  // Interceptar TODAS las escrituras locales de la app sin tocar tus módulos
+  (function interceptLocalStorage(){
+    const origSet = localStorage.setItem.bind(localStorage);
+    localStorage.setItem = function(k,v){
+      const r = origSet(k,v);
+      if(k && k.startsWith('fantasy_')) saveToCloudDebounced();
+      return r;
+    };
+  })();
+
+  // Hook al inicio de tu app: sincroniza primero y luego abre la UI
+  (function hookStart(){
+    const orig = window.startApp;
+    window.startApp = async function(){
+      ensureUI();
+      try{
+        // pequeño ping para “actividad” y prevenir pausa por inactividad
+        await supa.from(TABLE).select('id').limit(1);
+        await reconcile();
+      }catch(e){
+        console.warn('No se pudo sincronizar al inicio (¿proyecto pausado?)', e);
+        tempStatus('⚠️ Nube no disponible. Usando copia local.','error', 3000);
+      }
+      orig();
+    };
+  })();
+
+  // Botón manual
+  async function manualSync(){
+    try{ await reconcile(); }catch(e){
+      console.warn(e);
+      tempStatus('❌ Error de sincronización manual','error', 2500);
+    }
+  }
+
+  // Por si se entra directo sin pulsar “Entrar a la Liga”, preparamos la UI
+  document.addEventListener('DOMContentLoaded', ensureUI);
+</script>
+<!-- === Fin Cloud Sync === -->
 </body>
 </html>
