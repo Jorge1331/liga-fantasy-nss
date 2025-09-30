@@ -2558,7 +2558,23 @@
 const TABLE   = 'fantasy_state';
 const ROW_ID  = 'singleton';
 const METAKEY = 'fantasy_meta_v1';
+let isApplyingFromCloud = false;   // evita disparos al bajar de la nube
+let isInternalWrite     = false;   // evita disparos al escribir METAKEY
+let isSavingToCloud     = false;   // evita solapar guardados
 
+function setMetaSilently(ts){
+  isInternalWrite = true;
+  try { localStorage.setItem(METAKEY, String(ts)); }
+  finally { isInternalWrite = false; }
+}
+
+function getLocalTimestamp(){
+  const v = localStorage.getItem(METAKEY);
+  return v ? parseInt(v,10) : 0;
+}
+function bumpLocalTimestamp(){
+  setMetaSilently(Date.now());
+}
   let isApplyingFromCloud = false; // ⬅️ NUEVO: bandera para evitar bucles
 
   // --- UI: botón y barra de estado (posición fija, no empuja layout) ---
@@ -2703,32 +2719,37 @@ const METAKEY = 'fantasy_meta_v1';
 
   // --- Reconciliación: gana lo más reciente ---
   async function reconcile(){
-    showStatus('Sincronizando…','info');
-    const localTs = getLocalTimestamp();
-    const cloud = await loadCloudRow(); // {data, updated_at} o null
+  showStatus('Sincronizando…','info');
 
-    if(!cloud){
-      // No hay fila en la nube: subimos todo lo local
-      bumpLocalTimestamp();
-      await upsertCloud(collectLocalState());
-      tempStatus('✅ Nube inicializada con tus datos locales','ok');
-      return;
-    }
+  const localTs = getLocalTimestamp();
+  const cloud = await loadCloudRow(); // {data, updated_at} o null
 
-    const cloudData = cloud.data || {};
-    const cloudTs = new Date(cloud.updated_at || cloudData?._meta?.updatedAt || 0).getTime();
-
-    if(localTs >= cloudTs){
-      // Local más reciente => subir
-      bumpLocalTimestamp();
-      await upsertCloud(collectLocalState());
-      tempStatus('☁️ Cambios locales subidos a la nube','ok');
-    }else{
-      // Nube más reciente => descargar
-      applyStateToLocal(cloudData);
-      tempStatus('⬇️ Datos más recientes descargados de la nube','ok');
-    }
+  if(!cloud){
+    // Inicializa nube con lo local
+    await saveToCloud(); // ya sella local en éxito
+    tempStatus('✅ Nube inicializada con tus datos locales','ok');
+    return;
   }
+
+  const cloudData = cloud.data || {};
+  const cloudTs = new Date(cloud.updated_at || (cloudData._meta?.updatedAt ?? 0)).getTime();
+
+  if (localTs >= cloudTs) {
+    // Local gana -> subimos (y sellamos local tras subir)
+    await saveToCloud();
+    tempStatus('☁️ Cambios locales subidos a la nube','ok');
+  } else {
+    // Nube gana -> aplicamos en local en silencio y sellamos con el ts de nube
+    isApplyingFromCloud = true;
+    try{
+      applyStateToLocal(cloudData);           // esto NO debe disparar gracias al flag
+      setMetaSilently(cloudTs || Date.now()); // refleja el ts de nube sin disparar
+    } finally {
+      isApplyingFromCloud = false;
+    }
+    tempStatus('⬇️ Datos más recientes descargados de la nube','ok');
+  }
+}
 
   // --- Guardado en nube al detectar cambios locales ---
    let saveTimer = null;
@@ -2737,39 +2758,46 @@ const METAKEY = 'fantasy_meta_v1';
     saveTimer = setTimeout(saveToCloud, 1200); // antes: 600
   }
   async function saveToCloud(){
-    try{
-      bumpLocalTimestamp();
-      showStatus('Guardando en la nube…','info');
-      const snapshot = collectLocalState();
-      const { error } = await supa.from(TABLE)
-        .update({ data: snapshot, updated_at: new Date().toISOString() })
-        .eq('id', ROW_ID);
-      if(error) throw error;
-      tempStatus('💾 Cambios guardados en la nube','ok');
-    }catch(err){
-      console.warn('Supabase save error', err);
-      tempStatus('❌ Error al guardar en la nube. Copia local activa.','error', 2500);
-    }
-  }
+  if (isSavingToCloud) return; // evita solapes
+  isSavingToCloud = true;
+  try{
+    showStatus('Guardando en la nube…','info');
+    const snapshot = collectLocalState();
+    const up = { id: ROW_ID, data: snapshot, updated_at: new Date().toISOString() };
+    const { error } = await supa.from(TABLE).upsert(up).eq('id', ROW_ID);
+    if (error) throw error;
 
-   // Interceptar escrituras en localStorage relacionadas con la app, sin bucles
+    // al terminar bien, actualiza el meta local en silencio (sin disparar el interceptor)
+    setMetaSilently(Date.now());
+    tempStatus('💾 Cambios guardados en la nube','ok');
+  }catch(err){
+    console.warn('Supabase save error', err);
+    tempStatus('❌ Error al guardar en la nube. Copia local activa.','error', 2500);
+  }finally{
+    isSavingToCloud = false;
+  }
+}
+
+  // Interceptar escrituras en localStorage relacionadas con la app, sin bucles
 (function interceptLocalStorage(){
   const origSet = localStorage.setItem.bind(localStorage);
+
   localStorage.setItem = function(k, v){
-    // 1) Leer el valor ANTES de escribir
+    // lee antes de escribir
     let prev = null;
     try { prev = localStorage.getItem(k); } catch {}
 
-    // 2) Escribir realmente
+    // escribe de verdad
     const r = origSet(k, v);
 
-    // 3) Evitar bucle cuando aplicamos desde la nube
-    if (isApplyingFromCloud) return r;
+    // NO dispares si estamos aplicando desde la nube o escribiendo METAKEY en silencio
+    if (isApplyingFromCloud || isInternalWrite) return r;
 
-    // 4) Solo claves de la app y si realmente cambió
-    if (k && k.startsWith('fantasy_') && prev !== v) {
-      bumpLocalTimestamp();      // marca local como más reciente YA
-      saveToCloudDebounced();    // sube en segundo plano
+    // solo reacciona a claves de la app, excepto METAKEY
+    if (k && k.startsWith('fantasy_') && k !== METAKEY && prev !== v) {
+      // marca local como más reciente YA y sube con calma si no hay un guardado en curso
+      if (!isSavingToCloud) setMetaSilently(Date.now());
+      saveToCloudDebounced();
     }
     return r;
   };
@@ -2801,7 +2829,7 @@ const METAKEY = 'fantasy_meta_v1';
 
   // Por si se entra directo sin pulsar “Entrar a la Liga”, preparamos la UI
   document.addEventListener('DOMContentLoaded', ensureUI);
-  window.addEventListener('beforeunload', () => { try { saveToCloud(); } catch {} });
+window.addEventListener('beforeunload', () => { try { saveToCloud(); } catch {} });
 document.addEventListener('visibilitychange', () => { if (document.hidden) { try { saveToCloud(); } catch {} }});
 </script>
 <!-- === Fin Cloud Sync === -->
