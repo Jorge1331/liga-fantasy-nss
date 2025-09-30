@@ -2579,65 +2579,51 @@ function bumpLocalTimestamp(){
 
 // --- UI de sincronización: barra + botones ---
 function ensureUI(){
-  const header     = document.querySelector('header');
-  const headerRow  = document.querySelector('header .max-w-6xl');
-  if (!headerRow) return;
+  const headerRow = document.querySelector('header .max-w-6xl');
+  if (!headerRow || document.getElementById('cloudStatusBar')) return;
 
-  // (1) permite que el header haga dos líneas en móvil
-  headerRow.classList.add('flex-wrap','gap-2');
-  header?.classList.add('pb-2');
+  const right = document.createElement('div');
+  right.className = 'flex items-center gap-2';
+  right.innerHTML = `
+    <button id="saveNowBtn" class="bg-indigo-600 text-white text-sm px-3 py-1 rounded hover:bg-indigo-700 transition">
+      Guardar ahora
+    </button>
+    <button id="syncBtn" class="bg-emerald-600 text-white text-sm px-3 py-1 rounded hover:bg-emerald-700 transition">
+      Sincronizar ahora
+    </button>`;
+  headerRow.appendChild(right);
 
-  // (2) crea (si no existe) el contenedor de botones, con versión compacta para móvil
-  let controls = document.getElementById('cloudControls');
-  if (!controls){
-    controls = document.createElement('div');
-    controls.id = 'cloudControls';
-    controls.className = 'flex items-center gap-2 ml-auto';
-    controls.innerHTML = `
-      <button id="saveNowBtn"
-        class="text-xs px-2 py-1 sm:text-sm sm:px-3 sm:py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700 transition inline-flex items-center gap-1">
-        <span aria-hidden="true">💾</span><span class="hidden sm:inline">Guardar ahora</span>
-      </button>
-      <button id="syncBtn"
-        class="text-xs px-2 py-1 sm:text-sm sm:px-3 sm:py-1 rounded bg-emerald-600 text-white hover:bg-emerald-700 transition inline-flex items-center gap-1">
-        <span aria-hidden="true">☁️</span><span class="hidden sm:inline">Sincronizar ahora</span>
-      </button>`;
-    headerRow.appendChild(controls);
+  document.getElementById('syncBtn')?.addEventListener('click', manualSync);
+  document.getElementById('saveNowBtn')?.addEventListener('click', async () => {
+    try { bumpLocalTimestamp(); await saveToCloud(); }
+    catch (e) { console.warn(e); tempStatus('❌ Error al guardar ahora', 'error', 2500); }
+  });
 
-    // eventos (ya tienes manualSync / saveToCloud definidas)
-    document.getElementById('syncBtn')?.addEventListener('click', manualSync);
-    document.getElementById('saveNowBtn')?.addEventListener('click', async () => {
-      try { bumpLocalTimestamp(); await saveToCloud(); }
-      catch (e) { console.warn(e); tempStatus('❌ Error al guardar ahora','error',2500); }
-    });
-  }
-
-  // (3) barra de estado fija, colocada justo bajo el header
-  let statusBar = document.getElementById('cloudStatusBar');
-  if (!statusBar){
-    statusBar = document.createElement('div');
-    statusBar.id = 'cloudStatusBar';
-    statusBar.style.position = 'fixed';
-    statusBar.style.left = '0';
-    statusBar.style.right = '0';
-    statusBar.style.zIndex = '50';
-    statusBar.style.pointerEvents = 'none';
-    statusBar.style.transition = 'opacity .25s ease';
-    statusBar.style.opacity = '0';
-    statusBar.className = 'text-sm px-4 py-2 text-center';
-    document.body.appendChild(statusBar);
-  }
-
-  const placeStatus = () => {
-    const rect = header?.getBoundingClientRect?.();
-    const top  = rect?.height ? rect.height : 56;
-    statusBar.style.top = `${top}px`;
-  };
-  placeStatus();
-  window.addEventListener('resize', placeStatus, { passive:true });
-  window.addEventListener('orientationchange', placeStatus, { passive:true });
+  const statusBar = document.createElement('div');
+  statusBar.id = 'cloudStatusBar';
+  statusBar.style.position = 'fixed';
+  statusBar.style.top = '56px';
+  statusBar.style.left = '0';
+  statusBar.style.right = '0';
+  statusBar.style.zIndex = '50';
+  statusBar.style.pointerEvents = 'none';
+  statusBar.style.transition = 'opacity .25s ease';
+  statusBar.style.opacity = '0';
+  statusBar.className = 'text-sm px-4 py-2 text-center';
+  document.body.appendChild(statusBar);
 }
-
+function statusEl(){ return document.getElementById('cloudStatusBar'); }
+function showStatus(msg, type='info'){
+  const el = statusEl(); if (!el) return;
+  const styles = {
+    info:  'bg-yellow-100 text-yellow-900',
+    ok:    'bg-green-100 text-green-900',
+    error: 'bg-red-100 text-red-900'
+  };
+  el.className = `text-sm px-4 py-2 text-center ${styles[type] || styles.info}`;
+  el.textContent = msg;
+  el.style.opacity = '1';
+}
 function tempStatus(msg, type='ok', ms=1500){
   showStatus(msg, type);
   setTimeout(() => { const el = statusEl(); if (el) el.style.opacity = '0'; }, ms);
