@@ -196,13 +196,6 @@
         <button onclick="goHome()" class="btn-primary px-4 py-1 rounded">Inicio</button>
       </div>
     </header>
-
- <!-- Pantalla de Selección (rediseñada) -->
-   <section id="intro" class="bg-gray-100 min-h-screen">
-
-  <!-- Pantalla de Selección (rediseñada) -->
-<section id="intro" class="bg-gray-100 min-h-screen">
-
   <!-- HEADER HOME -->
   <header class="bg-white shadow sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
@@ -326,22 +319,7 @@
 
   </main>
 </section>
-
-<!-- Helper para navegar desde intro SIN tocar tu lógica -->
-<script>
-  function goTo(sec){
-    // 1) Abre la app (oculta intro + muestra mainApp) usando tu lógica
-    if (typeof startApp === "function") startApp();
-    // 2) Muestra la sección deseada
-    if (typeof showSection === "function") showSection(sec);
-    // 3) Si tu startApp() abre por defecto 5a y pisa la sección,
-    //    re-lanzamos showSection al siguiente tick para asegurar la navegación.
-    setTimeout(() => {
-      if (typeof showSection === "function") showSection(sec);
-    }, 0);
-  }
 </script>
-
     <!-- Navegación superior clásica -->
     <!-- Navegación superior (solo secciones globales) -->
 <nav id="nav-top" class="hidden bg-gray-200">
@@ -2712,19 +2690,23 @@ function renderProgress(){
   </div>
 
   <script>
-   function startApp(){
-  // Abre la app
-  document.getElementById('intro').classList.add('hidden');
-  document.getElementById('mainApp').classList.remove('hidden');
+   <script>
+function startApp(){
+  document.getElementById('intro')?.classList.add('hidden');
+  document.getElementById('mainApp')?.classList.remove('hidden');
 
-  // Estado por defecto: mostrar selector (tu pantalla intermedia) y ocultar nav superior
+  // Mostrar dashboard interno
   document.getElementById('selector')?.classList.remove('hidden');
   document.getElementById('nav-top')?.classList.add('hidden');
+
+  // Ocultar secciones por si quedaron visibles
+  document.querySelectorAll('#mainApp main > section')
+    .forEach(s => { if (s.id !== 'selector') s.classList.add('hidden'); });
 }
 
 function showSection(sec){
-  // Oculta todas las secciones del main
-  document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
+  // Oculta TODAS las secciones dentro del mainApp
+  document.querySelectorAll('#mainApp main > section').forEach(s => s.classList.add('hidden'));
 
   // Oculta selector y muestra nav superior
   document.getElementById('selector')?.classList.add('hidden');
@@ -2735,34 +2717,24 @@ function showSection(sec){
   if (target) target.classList.remove('hidden');
 }
 
-/**
- * Navegación segura desde la HOME (intro)
- * - Abre la app
- * - Entra directamente a la sección deseada
- */
 function goTo(sec){
   startApp();
-  // Asegura la navegación incluso si hay cambios de estado en startApp()
   setTimeout(() => showSection(sec), 0);
 }
 
-/**
- * Volver a INICIO (HOME nueva)
- */
 function goHome(){
-  // Oculta todo dentro del main
-  document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
+  // Oculta todas las secciones del mainApp
+  document.querySelectorAll('#mainApp main > section').forEach(s => s.classList.add('hidden'));
 
-  // Oculta selector y nav (para que al volver no aparezcan cosas raras)
-  document.getElementById('selector')?.classList.add('hidden');
+  // Oculta nav y selector
   document.getElementById('nav-top')?.classList.add('hidden');
+  document.getElementById('selector')?.classList.add('hidden');
 
-  // Vuelve a HOME nueva
-  document.getElementById('mainApp').classList.add('hidden');
-  document.getElementById('intro').classList.remove('hidden');
+  // Vuelve al hero inicial
+  document.getElementById('mainApp')?.classList.add('hidden');
+  document.getElementById('intro')?.classList.remove('hidden');
 }
-    }
-  </script>
+</script>
 <!-- === Cloud Sync simple (Supabase + localStorage) === -->
 <script type="module">
 // --- Supabase config ---
