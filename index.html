@@ -200,24 +200,22 @@
  <!-- Pantalla de Selección (rediseñada) -->
    <section id="intro" class="bg-gray-100 min-h-screen">
 
+  <!-- Pantalla de Selección (rediseñada) -->
+<section id="intro" class="bg-gray-100 min-h-screen">
+
   <!-- HEADER HOME -->
   <header class="bg-white shadow sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-      <h1 class="text-2xl font-extrabold text-blue-700">
-        🏆 Liga Fantasy NSS 25/26
-      </h1>
-      <span class="text-gray-600 text-sm hidden md:block">
-        Gamificación · Evaluación · IA educativa
-      </span>
+      <h1 class="text-2xl font-extrabold text-blue-700">🏆 Liga Fantasy NSS 25/26</h1>
+      <span class="text-gray-600 text-sm hidden md:block">Gamificación · Evaluación · IA educativa</span>
     </div>
   </header>
 
   <!-- DASHBOARD HOME -->
   <main class="max-w-7xl mx-auto px-6 py-10">
-    <h2 class="text-3xl font-bold mb-8">
-      📊 Dashboard de Clases
-    </h2>
+    <h2 class="text-3xl font-bold mb-8">📊 Dashboard de Clases</h2>
 
+    <!-- Grid clases -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
       <!-- 5ºA -->
@@ -227,13 +225,11 @@
 
         <div class="mt-4 bg-blue-50 rounded-xl p-3">
           <p class="text-sm font-bold">🤖 Entrenador IA</p>
-          <p class="text-sm text-gray-700">
-            Entrenador del Respeto
-          </p>
+          <p class="text-sm text-gray-700">Entrenador del Respeto</p>
         </div>
 
         <button
-          onclick="startApp(); showSection('5a');"
+          onclick="goTo('5a')"
           class="mt-5 w-full bg-blue-600 text-white py-2 rounded-xl font-semibold hover:bg-blue-700 transition">
           Ver equipo
         </button>
@@ -246,13 +242,11 @@
 
         <div class="mt-4 bg-green-50 rounded-xl p-3">
           <p class="text-sm font-bold">🤖 Entrenador IA</p>
-          <p class="text-sm text-gray-700">
-            Entrenador del Esfuerzo
-          </p>
+          <p class="text-sm text-gray-700">Entrenador del Esfuerzo</p>
         </div>
 
         <button
-          onclick="startApp(); showSection('5b');"
+          onclick="goTo('5b')"
           class="mt-5 w-full bg-green-600 text-white py-2 rounded-xl font-semibold hover:bg-green-700 transition">
           Ver equipo
         </button>
@@ -265,13 +259,11 @@
 
         <div class="mt-4 bg-yellow-50 rounded-xl p-3">
           <p class="text-sm font-bold">🤖 Entrenador IA</p>
-          <p class="text-sm text-gray-700">
-            Entrenador Motivador
-          </p>
+          <p class="text-sm text-gray-700">Entrenador Motivador</p>
         </div>
 
         <button
-          onclick="startApp(); showSection('6a');"
+          onclick="goTo('6a')"
           class="mt-5 w-full bg-yellow-400 text-black py-2 rounded-xl font-semibold hover:bg-yellow-500 transition">
           Ver equipo
         </button>
@@ -284,41 +276,71 @@
 
         <div class="mt-4 bg-purple-50 rounded-xl p-3">
           <p class="text-sm font-bold">🤖 Entrenador IA</p>
-          <p class="text-sm text-gray-700">
-            Entrenador del Respeto
-          </p>
+          <p class="text-sm text-gray-700">Entrenador del Respeto</p>
         </div>
 
         <button
-          onclick="startApp(); showSection('6b');"
+          onclick="goTo('6b')"
           class="mt-5 w-full bg-purple-600 text-white py-2 rounded-xl font-semibold hover:bg-purple-700 transition">
           Ver equipo
         </button>
       </div>
-      <button class="btn-tile bg-gradient-to-br from-slate-800 to-slate-900 focus-visible:outline-white"
-              onclick="showSection('objetivos')" aria-label="Ver Objetivos">
-        <span class="icon">🎯</span> Objetivos
+
+    </div><!-- /grid clases -->
+
+    <!-- Grid accesos rápidos -->
+    <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+      <button class="btn-tile bg-gradient-to-br from-slate-800 to-slate-900 text-white rounded-2xl p-5 shadow hover:shadow-lg transition"
+              onclick="goTo('objetivos')" aria-label="Ver Objetivos">
+        <span class="icon text-xl">🎯</span>
+        <div class="font-bold mt-1">Objetivos</div>
       </button>
 
-      <button class="btn-tile bg-gradient-to-br from-emerald-600 to-teal-600 focus-visible:outline-white"
-              onclick="showSection('recompensas')" aria-label="Ver Recompensas">
-        <span class="icon">🎁</span> Recompensas
+      <button class="btn-tile bg-gradient-to-br from-emerald-600 to-teal-600 text-white rounded-2xl p-5 shadow hover:shadow-lg transition"
+              onclick="goTo('recompensas')" aria-label="Ver Recompensas">
+        <span class="icon text-xl">🎁</span>
+        <div class="font-bold mt-1">Recompensas</div>
       </button>
 
-      <!-- Entrevistas: debajo de Objetivos -->
-      <button class="btn-tile bg-gradient-to-br from-orange-600 to-amber-600 sm:col-start-1 md:col-start-2 focus-visible:outline-white"
-              onclick="showSection('entrevistas')" aria-label="Ver Entrevistas">
-        <span class="icon">🎤</span> Entrevistas
+      <button class="btn-tile bg-gradient-to-br from-orange-600 to-amber-600 text-white rounded-2xl p-5 shadow hover:shadow-lg transition"
+              onclick="goTo('entrevistas')" aria-label="Ver Entrevistas">
+        <span class="icon text-xl">🎤</span>
+        <div class="font-bold mt-1">Entrevistas</div>
       </button>
-      <!-- Tarjeta Acceso profes (nueva) -->
-<!-- Tarjeta Acceso tutores (colócala JUSTO después de la tarjeta de Entrevistas) -->
-<!-- Tarjeta Acceso tutores (poner inmediatamente debajo de la tarjeta de Entrevistas) -->
-<button onclick="showSection('acceso-profes')"
-  class="w-full sm:w-60 bg-gray-900 text-white rounded-2xl p-5 shadow hover:shadow-lg hover:-translate-y-0.5 transition">
-  <div class="text-xl font-bold mb-1">Acceso tutores</div>
-  <p class="text-sm opacity-90">Introduce el PIN para abrir una clase</p>
-</button>
+
+      <button class="bg-gray-900 text-white rounded-2xl p-5 shadow hover:shadow-lg transition"
+              onclick="goTo('acceso-profes')" aria-label="Acceso tutores">
+        <div class="text-lg font-bold mb-1">Acceso tutores</div>
+        <p class="text-sm opacity-90">Introduce el PIN para abrir una clase</p>
+      </button>
+
+    </div>
+
+    <!-- MENSAJE PEDAGÓGICO -->
+    <section class="mt-10 bg-white rounded-2xl shadow p-8">
+      <h3 class="text-2xl font-bold mb-4">🧠 IA con sentido educativo</h3>
+      <p class="text-lg text-gray-700 mb-2">En este proyecto la IA no evalúa ni sustituye al docente.</p>
+      <p class="text-xl font-extrabold text-blue-700">👉 La IA no decide, sugiere y acompaña.</p>
     </section>
+
+  </main>
+</section>
+
+<!-- Helper para navegar desde intro SIN tocar tu lógica -->
+<script>
+  function goTo(sec){
+    // 1) Abre la app (oculta intro + muestra mainApp) usando tu lógica
+    if (typeof startApp === "function") startApp();
+    // 2) Muestra la sección deseada
+    if (typeof showSection === "function") showSection(sec);
+    // 3) Si tu startApp() abre por defecto 5a y pisa la sección,
+    //    re-lanzamos showSection al siguiente tick para asegurar la navegación.
+    setTimeout(() => {
+      if (typeof showSection === "function") showSection(sec);
+    }, 0);
+  }
+</script>
 
     <!-- Navegación superior clásica -->
     <!-- Navegación superior (solo secciones globales) -->
@@ -2690,24 +2712,55 @@ function renderProgress(){
   </div>
 
   <script>
-    function startApp(){
-      document.getElementById('intro').classList.add('hidden');
-      document.getElementById('mainApp').classList.remove('hidden');
-      document.getElementById('selector').classList.remove('hidden');
-      document.getElementById('nav-top').classList.add('hidden');
-    }
+   function startApp(){
+  // Abre la app
+  document.getElementById('intro').classList.add('hidden');
+  document.getElementById('mainApp').classList.remove('hidden');
 
-    function showSection(sec){
-      document.querySelectorAll('main > section').forEach(s=>s.classList.add('hidden'));
-      document.getElementById('selector').classList.add('hidden');
-      document.getElementById('nav-top').classList.remove('hidden');
-      document.getElementById(sec).classList.remove('hidden');
-    }
+  // Estado por defecto: mostrar selector (tu pantalla intermedia) y ocultar nav superior
+  document.getElementById('selector')?.classList.remove('hidden');
+  document.getElementById('nav-top')?.classList.add('hidden');
+}
 
-    function goHome(){
-      document.querySelectorAll('main > section').forEach(s=>s.classList.add('hidden'));
-      document.getElementById('selector').classList.remove('hidden');
-      document.getElementById('nav-top').classList.add('hidden');
+function showSection(sec){
+  // Oculta todas las secciones del main
+  document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
+
+  // Oculta selector y muestra nav superior
+  document.getElementById('selector')?.classList.add('hidden');
+  document.getElementById('nav-top')?.classList.remove('hidden');
+
+  // Muestra la sección pedida
+  const target = document.getElementById(sec);
+  if (target) target.classList.remove('hidden');
+}
+
+/**
+ * Navegación segura desde la HOME (intro)
+ * - Abre la app
+ * - Entra directamente a la sección deseada
+ */
+function goTo(sec){
+  startApp();
+  // Asegura la navegación incluso si hay cambios de estado en startApp()
+  setTimeout(() => showSection(sec), 0);
+}
+
+/**
+ * Volver a INICIO (HOME nueva)
+ */
+function goHome(){
+  // Oculta todo dentro del main
+  document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
+
+  // Oculta selector y nav (para que al volver no aparezcan cosas raras)
+  document.getElementById('selector')?.classList.add('hidden');
+  document.getElementById('nav-top')?.classList.add('hidden');
+
+  // Vuelve a HOME nueva
+  document.getElementById('mainApp').classList.add('hidden');
+  document.getElementById('intro').classList.remove('hidden');
+}
     }
   </script>
 <!-- === Cloud Sync simple (Supabase + localStorage) === -->
