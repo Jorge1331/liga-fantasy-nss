@@ -196,130 +196,56 @@
         <button onclick="goHome()" class="btn-primary px-4 py-1 rounded">Inicio</button>
       </div>
     </header>
-  <!-- HEADER HOME -->
-  <header class="bg-white shadow sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-      <h1 class="text-2xl font-extrabold text-blue-700">🏆 Liga Fantasy NSS 25/26</h1>
-      <span class="text-gray-600 text-sm hidden md:block">Gamificación · Evaluación · IA educativa</span>
-    </div>
-  </header>
 
-  <!-- DASHBOARD HOME -->
-  <main class="max-w-7xl mx-auto px-6 py-10">
-    <h2 class="text-3xl font-bold mb-8">📊 Dashboard de Clases</h2>
+ <!-- Pantalla de Selección (rediseñada) -->
+    <section id="selector"
+      class="selector-surface flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 p-6 place-items-center">
 
-    <!-- Grid clases -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-
-      <!-- 5ºA -->
-      <div class="bg-white rounded-2xl shadow-lg p-6 border-t-8 border-blue-500">
-        <h3 class="text-xl font-bold mb-2">5ºA · Titanes 🔵</h3>
-        <p class="text-gray-600">⭐ Motivación y convivencia</p>
-
-        <div class="mt-4 bg-blue-50 rounded-xl p-3">
-          <p class="text-sm font-bold">🤖 Entrenador IA</p>
-          <p class="text-sm text-gray-700">Entrenador del Respeto</p>
-        </div>
-
-        <button
-          onclick="goTo('5a')"
-          class="mt-5 w-full bg-blue-600 text-white py-2 rounded-xl font-semibold hover:bg-blue-700 transition">
-          Ver equipo
-        </button>
-      </div>
-
-      <!-- 5ºB -->
-      <div class="bg-white rounded-2xl shadow-lg p-6 border-t-8 border-green-500">
-        <h3 class="text-xl font-bold mb-2">5ºB · Halcones 🟢</h3>
-        <p class="text-gray-600">⭐ Esfuerzo y constancia</p>
-
-        <div class="mt-4 bg-green-50 rounded-xl p-3">
-          <p class="text-sm font-bold">🤖 Entrenador IA</p>
-          <p class="text-sm text-gray-700">Entrenador del Esfuerzo</p>
-        </div>
-
-        <button
-          onclick="goTo('5b')"
-          class="mt-5 w-full bg-green-600 text-white py-2 rounded-xl font-semibold hover:bg-green-700 transition">
-          Ver equipo
-        </button>
-      </div>
-
-      <!-- 6ºA -->
-      <div class="bg-white rounded-2xl shadow-lg p-6 border-t-8 border-yellow-400">
-        <h3 class="text-xl font-bold mb-2">6ºA · Dragones 🟡</h3>
-        <p class="text-gray-600">⭐ Actitud positiva</p>
-
-        <div class="mt-4 bg-yellow-50 rounded-xl p-3">
-          <p class="text-sm font-bold">🤖 Entrenador IA</p>
-          <p class="text-sm text-gray-700">Entrenador Motivador</p>
-        </div>
-
-        <button
-          onclick="goTo('6a')"
-          class="mt-5 w-full bg-yellow-400 text-black py-2 rounded-xl font-semibold hover:bg-yellow-500 transition">
-          Ver equipo
-        </button>
-      </div>
-
-      <!-- 6ºB -->
-      <div class="bg-white rounded-2xl shadow-lg p-6 border-t-8 border-purple-500">
-        <h3 class="text-xl font-bold mb-2">6ºB · Fénix 🟣</h3>
-        <p class="text-gray-600">⭐ Respeto y cooperación</p>
-
-        <div class="mt-4 bg-purple-50 rounded-xl p-3">
-          <p class="text-sm font-bold">🤖 Entrenador IA</p>
-          <p class="text-sm text-gray-700">Entrenador del Respeto</p>
-        </div>
-
-        <button
-          onclick="goTo('6b')"
-          class="mt-5 w-full bg-purple-600 text-white py-2 rounded-xl font-semibold hover:bg-purple-700 transition">
-          Ver equipo
-        </button>
-      </div>
-
-    </div><!-- /grid clases -->
-
-    <!-- Grid accesos rápidos -->
-    <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-
-      <button class="btn-tile bg-gradient-to-br from-slate-800 to-slate-900 text-white rounded-2xl p-5 shadow hover:shadow-lg transition"
-              onclick="goTo('objetivos')" aria-label="Ver Objetivos">
-        <span class="icon text-xl">🎯</span>
-        <div class="font-bold mt-1">Objetivos</div>
+      <button class="btn-tile bg-gradient-to-br from-blue-600 to-indigo-600 focus-visible:outline-white"
+              onclick="showSection('5a')" aria-label="Abrir Clase 5A">
+        <span class="icon">🏫</span> Clase 5ºA
       </button>
 
-      <button class="btn-tile bg-gradient-to-br from-emerald-600 to-teal-600 text-white rounded-2xl p-5 shadow hover:shadow-lg transition"
-              onclick="goTo('recompensas')" aria-label="Ver Recompensas">
-        <span class="icon text-xl">🎁</span>
-        <div class="font-bold mt-1">Recompensas</div>
+      <button class="btn-tile bg-gradient-to-br from-blue-600 to-sky-600 focus-visible:outline-white"
+              onclick="showSection('5b')" aria-label="Abrir Clase 5B">
+        <span class="icon">🏫</span> Clase 5ºB
       </button>
 
-      <button class="btn-tile bg-gradient-to-br from-orange-600 to-amber-600 text-white rounded-2xl p-5 shadow hover:shadow-lg transition"
-              onclick="goTo('entrevistas')" aria-label="Ver Entrevistas">
-        <span class="icon text-xl">🎤</span>
-        <div class="font-bold mt-1">Entrevistas</div>
+      <button class="btn-tile bg-gradient-to-br from-blue-600 to-indigo-600 focus-visible:outline-white"
+              onclick="showSection('6a')" aria-label="Abrir Clase 6A">
+        <span class="icon">🏫</span> Clase 6ºA
       </button>
 
-      <button class="bg-gray-900 text-white rounded-2xl p-5 shadow hover:shadow-lg transition"
-              onclick="goTo('acceso-profes')" aria-label="Acceso tutores">
-        <div class="text-lg font-bold mb-1">Acceso tutores</div>
-        <p class="text-sm opacity-90">Introduce el PIN para abrir una clase</p>
+      <button class="btn-tile bg-gradient-to-br from-blue-600 to-sky-600 focus-visible:outline-white"
+              onclick="showSection('6b')" aria-label="Abrir Clase 6B">
+        <span class="icon">🏫</span> Clase 6ºB
       </button>
 
-    </div>
+      <button class="btn-tile bg-gradient-to-br from-slate-800 to-slate-900 focus-visible:outline-white"
+              onclick="showSection('objetivos')" aria-label="Ver Objetivos">
+        <span class="icon">🎯</span> Objetivos
+      </button>
 
-    <!-- MENSAJE PEDAGÓGICO -->
-    <section class="mt-10 bg-white rounded-2xl shadow p-8">
-      <h3 class="text-2xl font-bold mb-4">🧠 IA con sentido educativo</h3>
-      <p class="text-lg text-gray-700 mb-2">En este proyecto la IA no evalúa ni sustituye al docente.</p>
-      <p class="text-xl font-extrabold text-blue-700">👉 La IA no decide, sugiere y acompaña.</p>
+      <button class="btn-tile bg-gradient-to-br from-emerald-600 to-teal-600 focus-visible:outline-white"
+              onclick="showSection('recompensas')" aria-label="Ver Recompensas">
+        <span class="icon">🎁</span> Recompensas
+      </button>
+
+      <!-- Entrevistas: debajo de Objetivos -->
+      <button class="btn-tile bg-gradient-to-br from-orange-600 to-amber-600 sm:col-start-1 md:col-start-2 focus-visible:outline-white"
+              onclick="showSection('entrevistas')" aria-label="Ver Entrevistas">
+        <span class="icon">🎤</span> Entrevistas
+      </button>
+      <!-- Tarjeta Acceso profes (nueva) -->
+<!-- Tarjeta Acceso tutores (colócala JUSTO después de la tarjeta de Entrevistas) -->
+<!-- Tarjeta Acceso tutores (poner inmediatamente debajo de la tarjeta de Entrevistas) -->
+<button onclick="showSection('acceso-profes')"
+  class="w-full sm:w-60 bg-gray-900 text-white rounded-2xl p-5 shadow hover:shadow-lg hover:-translate-y-0.5 transition">
+  <div class="text-xl font-bold mb-1">Acceso tutores</div>
+  <p class="text-sm opacity-90">Introduce el PIN para abrir una clase</p>
+</button>
     </section>
 
-  </main>
-</section>
-</script>
     <!-- Navegación superior clásica -->
     <!-- Navegación superior (solo secciones globales) -->
 <nav id="nav-top" class="hidden bg-gray-200">
@@ -343,7 +269,7 @@
       <div class="flex flex-wrap gap-2">
         <button id="c5a-btn-mvp" class="px-4 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700 shadow">🎲 Sorteo MVP</button>
         <button id="c5a-btn-reset" class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 shadow">🧹 Reset puntos</button>
-        <button id="c5a-btn-edit" class="px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-black shadow">✏️ Editar lista</button>
+        <button id="c5a-btn-edit" class="px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-black shadow"✏️ Editar lista</button>
       </div>
     </div>
 
@@ -2690,51 +2616,26 @@ function renderProgress(){
   </div>
 
   <script>
-   <script>
-function startApp(){
-  document.getElementById('intro')?.classList.add('hidden');
-  document.getElementById('mainApp')?.classList.remove('hidden');
+    function startApp(){
+      document.getElementById('intro').classList.add('hidden');
+      document.getElementById('mainApp').classList.remove('hidden');
+      document.getElementById('selector').classList.remove('hidden');
+      document.getElementById('nav-top').classList.add('hidden');
+    }
 
-  // Mostrar dashboard interno
-  document.getElementById('selector')?.classList.remove('hidden');
-  document.getElementById('nav-top')?.classList.add('hidden');
+    function showSection(sec){
+      document.querySelectorAll('main > section').forEach(s=>s.classList.add('hidden'));
+      document.getElementById('selector').classList.add('hidden');
+      document.getElementById('nav-top').classList.remove('hidden');
+      document.getElementById(sec).classList.remove('hidden');
+    }
 
-  // Ocultar secciones por si quedaron visibles
-  document.querySelectorAll('#mainApp main > section')
-    .forEach(s => { if (s.id !== 'selector') s.classList.add('hidden'); });
-}
-
-function showSection(sec){
-  // Oculta TODAS las secciones dentro del mainApp
-  document.querySelectorAll('#mainApp main > section').forEach(s => s.classList.add('hidden'));
-
-  // Oculta selector y muestra nav superior
-  document.getElementById('selector')?.classList.add('hidden');
-  document.getElementById('nav-top')?.classList.remove('hidden');
-
-  // Muestra la sección pedida
-  const target = document.getElementById(sec);
-  if (target) target.classList.remove('hidden');
-}
-
-function goTo(sec){
-  startApp();
-  setTimeout(() => showSection(sec), 0);
-}
-
-function goHome(){
-  // Oculta todas las secciones del mainApp
-  document.querySelectorAll('#mainApp main > section').forEach(s => s.classList.add('hidden'));
-
-  // Oculta nav y selector
-  document.getElementById('nav-top')?.classList.add('hidden');
-  document.getElementById('selector')?.classList.add('hidden');
-
-  // Vuelve al hero inicial
-  document.getElementById('mainApp')?.classList.add('hidden');
-  document.getElementById('intro')?.classList.remove('hidden');
-}
-</script>
+    function goHome(){
+      document.querySelectorAll('main > section').forEach(s=>s.classList.add('hidden'));
+      document.getElementById('selector').classList.remove('hidden');
+      document.getElementById('nav-top').classList.add('hidden');
+    }
+  </script>
 <!-- === Cloud Sync simple (Supabase + localStorage) === -->
 <script type="module">
 // --- Supabase config ---
